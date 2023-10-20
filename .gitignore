@@ -2,6 +2,12 @@
 Collect
 Reports
 Results
+Source
+Defense
+
+# HPC
+*.err
+*.log
 
 # MacOS system
 .DS_Store

@@ -11,73 +11,69 @@ rm(list=ls())
 # Load necessary libraries
 library(tidyverse)
 library(readxl)
+
 ```
 
-
-
 ```{r}
+# Libraries
+library(dplyr)
+library(ggplot2)
+library(readxl)
+
 # Step 1: Data Import
-metadata_path <- "../Data/Metadata.xlsx"
-defense_path <- "../Data/filtered_all_defense_transformed.csv"
+metadata_path <- "../Results/00.Get_Data/Metadata.xlsx"
+defense_path <- "../Results/00.Get_Data/ALL_extracted_defense.csv"
 
 metadata_df <- read_excel(metadata_path)
 defense_df <- read.csv(defense_path)
 
 defense_df$Sample <- gsub("-", "_", defense_df$Sample)
 
-# Step 2: Data Merging
+# Step 2: Rename columns
+UniName <- read.delim("../Results/00.Get_Data/Defense_system_name_list.txt", header = TRUE, check.names = FALSE)
+UniName_PADLOC <- UniName[,c("Unified Name","Unified Subtype Name","PADLOC Subtype Name")]
+colnames(UniName_PADLOC) <- c("Unified_Name", "Unified_Subtype_Name", "SubType")
+
+# Filter out NA and empty strings in SubType
+UniName_PADLOC <- UniName_PADLOC %>% filter(!is.na(SubType) & SubType != "")
+
+# Merge defense_df with UniName_PADLOC on 'system' and 'SubType'
+defense_df <- left_join(defense_df, UniName_PADLOC, by = c("system" = "SubType"))
+
+# Step 3: Data Merging
 merged_df <- merge(metadata_df, defense_df, by = "Sample")
 
-# Step 3: Data Analysis
+# Step 4: Data Analysis Function
+count_data <- function(grouping_var) {
+  grouped_df <- merged_df %>%
+    group_by(!!sym(grouping_var), Unified_Name) %>%
+    summarise(Counts = n())
+  return(grouped_df)
+}
 
-# Grouping by 'Season-Country-Day', 'Country', and 'system'
+# Step 5: Data Visualization Function
+plot_data <- function(grouping_var, title) {
+  grouped_df <- count_data(grouping_var)
+  ggplot() +
+    geom_bar(data = grouped_df, aes_string(x = grouping_var, y = 'Counts', fill = 'Unified_Name'), stat = "identity", position = "dodge") +
+    labs(title = title, x = grouping_var, y = "Counts") +
+    theme_minimal() +
+    theme(text = element_text(color = "#324f5e"), plot.title = element_text(color = "#e97952"))
+}
 
-grouped_df <- merged_df %>%
-  group_by(`Season-Country-Day`, Country, Season, system) %>%
-  summarise(Counts = n(), Unique_Samples = n_distinct(Sample))
+# Step 6: Generating and Saving Plots
+plot_names <- c('Season', 'Country', 'Day', 'Location', 'LocGroup1', 'LocGroup2')
 
-# Count unique samples for each 'Season-Country-Day', 'Country', and 'Season' group
-grouped_by_scd <- merged_df %>% group_by(`Season-Country-Day`) %>% summarise(Samples_in_SCD = n_distinct(Sample))
-grouped_by_country <- merged_df %>% group_by(Country) %>% summarise(Samples_in_Country = n_distinct(Sample))
-grouped_by_season <- merged_df %>% group_by(Season) %>% summarise(Samples_in_Season = n_distinct(Sample))
-
-# Step 4: Data Visualization
-
-p_day <- ggplot() +
-  geom_bar(data = grouped_df, aes(x = `Season-Country-Day`, y = Counts, fill = system), stat = "identity", position = "dodge") +
-  geom_text(data = grouped_df, aes(x = `Season-Country-Day`, y = Counts, label = Unique_Samples), vjust = 1.6, color = "black", position = position_dodge(0.9), size = 3.5) +
-  geom_label(data = grouped_by_scd, aes(x = `Season-Country-Day`, y = Inf, label = Samples_in_SCD), vjust = 1, hjust = 1) +
-  labs(title = "Defense System Distribution by Season-Country-Day",
-       x = "Season-Country-Day",
-       y = "Counts") +
-  theme_minimal()
-
-print(p_day)
-
-p_country <- ggplot() +
-  geom_bar(data = grouped_df, aes(x = Country, y = Counts, fill = system), stat = "identity", position = "dodge") +
-  geom_text(data = grouped_df, aes(x = Country, y = Counts, label = Unique_Samples), vjust = 1.6, color = "black", position = position_dodge(0.9), size = 3.5) +
-  geom_label(data = grouped_by_country, aes(x = Country, y = Inf, label = Samples_in_Country), vjust = 1, hjust = 1) +
-  labs(title = "Defense System Distribution by Country",
-       x = "Country",
-       y = "Counts") +
-  theme_minimal()
-
-print(p_country)
-
-# 对于 'Season' 分布
-p_season <- ggplot() +
-  geom_bar(data = grouped_df, aes(x = Season, y = Counts, fill = system), stat = "identity", position = "dodge") +
-  geom_text(data = grouped_df, aes(x = Season, y = Counts, label = Unique_Samples), vjust = 1.6, color = "black", position = position_dodge(0.9), size = 3.5) +
-  geom_label(data = grouped_by_season, aes(x = Season, y = Inf, label = Samples_in_Season), vjust = 1, hjust = 1) +
-  labs(title = "Defense System Distribution by Season",
-       x = "Season",
-       y = "Counts") +
-  theme_minimal()
-
-print(p_season)
-
-# ggsave(filename = "test.png", plot = p, width = 5, height = 5, dpi = 300)
-
+for (i in seq_along(plot_names)) {
+  p <- plot_data(plot_names[i], paste("Defense System Distribution by", plot_names[i]))
+  print(p)
+  ggsave(
+    filename = paste0("../Results/01.Overview/Defense_System_Distribution_by_", plot_names[i], ".pdf"),
+    plot = p,
+    width = 10,
+    height = 10,
+    dpi = 300
+  )
+}
 ```
 

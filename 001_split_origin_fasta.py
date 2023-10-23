@@ -49,9 +49,9 @@ def split_fasta(input_file, output_dir, chunk_size=1000):
 if __name__ == "__main__":
     # Initialize argument parser
     parser = argparse.ArgumentParser(description='Split a FASTA file into smaller chunks.')
-    parser.add_argument('-i', type=str, help='Path to the input FASTA file.')
-    parser.add_argument('-o', type=str, help='Path to the output directory.')
-    parser.add_argument('-s', type=int, default=1000, help='Number of sequences per chunk.')
+    parser.add_argument('-i', dest='input_file', type=str, help='Path to the input FASTA file.')
+    parser.add_argument('-o', dest='output_dir', type=str, help='Path to the output directory.')
+    parser.add_argument('-s', dest='chunk_size', type=int, default=1000, help='Number of sequences per chunk.')
 
     # Parse the arguments
     args = parser.parse_args()

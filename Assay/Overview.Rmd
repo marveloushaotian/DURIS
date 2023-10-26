@@ -11,16 +11,15 @@ rm(list=ls())
 # Load necessary libraries
 library(tidyverse)
 library(readxl)
+library(dplyr)
+library(readr)
+library(plotrix)
 
 ```
 
 ```{r}
-# Libraries
-library(dplyr)
-library(ggplot2)
-library(readxl)
-
 # Step 1: Data Import
+load("../Results/00.Get_Data/Color.RData")
 metadata_path <- "../Results/00.Get_Data/Metadata.xlsx"
 defense_path <- "../Results/00.Get_Data/ALL_extracted_defense.csv"
 
@@ -40,6 +39,8 @@ UniName_PADLOC <- UniName_PADLOC %>% filter(!is.na(SubType) & SubType != "")
 # Merge defense_df with UniName_PADLOC on 'system' and 'SubType'
 defense_df <- left_join(defense_df, UniName_PADLOC, by = c("system" = "SubType"))
 
+# write.csv(defense_df, "../Results/00.Get_Data/ALL_extracted_defense_with_union_name.csv", row.names = FALSE)
+
 # Step 3: Data Merging
 merged_df <- merge(metadata_df, defense_df, by = "Sample")
 
@@ -56,10 +57,19 @@ plot_data <- function(grouping_var, title) {
   grouped_df <- count_data(grouping_var)
   ggplot() +
     geom_bar(data = grouped_df, aes_string(x = grouping_var, y = 'Counts', fill = 'Unified_Name'), stat = "identity", position = "dodge") +
+    scale_fill_manual(values = papercolor_60, name = "Defense Systems") +  # Custom color palette and legend title
     labs(title = title, x = grouping_var, y = "Counts") +
     theme_minimal() +
-    theme(text = element_text(color = "#324f5e"), plot.title = element_text(color = "#e97952"))
+    theme(
+      plot.title = element_text(size = 14, face = "bold", angle = 0, vjust = 0.5, hjust = 0.5, color = "#e97952"),
+      axis.text.x = element_text(size = 10, face = "bold", angle = 45, vjust = 1, hjust = 1, color = "#324f5e"),  # Horizontal alignment
+      axis.text.y = element_text(size = 10, face = "bold", angle = 0, vjust = 1, hjust = 1, color = "#324f5e"),
+      axis.title.x = element_text(size = 12, face = "bold", angle = 0, vjust = 0.5, hjust = 0.5, color = "#324f5e"),
+      axis.title.y = element_text(size = 12, face = "bold", angle = 90, vjust = 0.5, hjust = 0.5, color = "#324f5e"),
+      legend.title = element_text(size = 12, face = "bold")
+    )
 }
+
 
 # Step 6: Generating and Saving Plots
 plot_names <- c('Season', 'Country', 'Day', 'Location', 'LocGroup1', 'LocGroup2')
@@ -76,4 +86,116 @@ for (i in seq_along(plot_names)) {
   )
 }
 ```
+
+# Overview: prevalence of defense systems in all datasets.
+
+```{r}
+# Step 1: Read the data files
+all_contig_length <- read_csv("../Results/00.Get_Data/all_contig_length.csv")
+all_extracted_defense <- read_csv("../Results/00.Get_Data/ALL_extracted_defense.csv")
+
+# Step 2: Add a 'source' column to distinguish the datasets
+all_contig_length$source <- "All Contigs"
+all_extracted_defense$source <- "Contain Defense"
+
+# Step 3: Combine the data frames
+combined_data <- bind_rows(all_contig_length, all_extracted_defense)
+
+# Step 4: Create the density plot
+ggplot(combined_data, aes(x = length, fill = source)) +
+  geom_density(alpha = 0.5) +
+  scale_fill_manual(values = c("#324f5e", "#e97952")) +
+  theme_minimal() +
+  labs(title = "Density Plot of Sequence Lengths",
+       x = "Length",
+       y = "Density",
+       fill = "Source")
+
+ggplot(combined_data, aes(x = length, fill = source)) +
+  geom_density(alpha = 0.5) +
+  scale_fill_manual(values = c("#324f5e", "#e97952")) +
+  theme_minimal() +
+  labs(title = "Density Plot of Sequence Lengths",
+       y = "Density",
+       fill = "Source") +
+  scale_y_continuous(labels = scales::comma) +
+  theme(plot.title = element_text(size = 14, face = "bold", angle = 0, vjust = 0.5, hjust = 0.5),
+        axis.text.x = element_text(size = 10, face = "bold", angle = 0, vjust = 0.5, hjust = 0.5),
+        axis.text.y = element_text(size = 10, face = "bold", angle = 0, vjust = 1, hjust = 1),
+        axis.title.x = element_text(size = 12, face = "bold", angle = 0, vjust = 0.5, hjust = 0.5),
+        axis.title.y = element_text(size = 12, face = "bold", angle = 90, vjust = 0.5, hjust = 0.5))
+
+
+# Save the plot
+ggsave("../Results/01.Overview/length_density.pdf", width = 8, height = 8, dpi = 300)
+
+```
+
+# All defense systems prevalence in all datasets.
+
+```{r}
+# Step 1: Load CSV files
+all_contig_length <- read_csv("../Results/00.Get_Data/all_contig_length.csv")
+all_defense_with_name <- read_csv("../Results/00.Get_Data/ALL_extracted_defense_with_union_name.csv")
+
+# Step 2: Count frequency of each Unified_Name in ALL_extracted_defense_with_union_name
+defense_count <- all_defense_with_name %>% 
+  group_by(Unified_Name) %>% 
+  summarise(defense_freq = n())
+
+# Step 3: Calculate total_freq as the total number of entries in all_contig_length
+total_freq <- nrow(all_contig_length)
+
+# Step 4: Calculate the ratio
+final_data <- defense_count %>% 
+  mutate(ratio = defense_freq / total_freq)
+
+# Step 5: Sort the data by ratio in descending order
+final_data <- final_data %>% arrange(desc(ratio))
+
+# Step 6: Plot the ratios
+p <- ggplot(final_data, aes(x = reorder(Unified_Name, -ratio), y = ratio)) +
+      geom_bar(stat = "identity", fill = "#324f5e") +
+      theme_minimal() +
+      labs(title = "Prevalence of Defense Systems",
+           y = "Prevalence") +
+      scale_y_continuous(labels = scales::percent) + 
+      theme(plot.title = element_text(size = 14, face = "bold", angle = 0, vjust = 0.5, hjust = 0.5),
+            axis.text.x = element_text(size = 10, face = "bold", angle = 45, vjust = 1, hjust = 1),
+            axis.text.y = element_text(size = 10, face = "bold", angle = 0, vjust = 1, hjust = 1),
+            axis.title.x = element_blank(),
+            axis.title.y = element_text(size = 12, face = "bold", angle = 90, vjust = 0.5, hjust = 0.5))
+
+ggsave("../Results/01.Overview/prevalence_of_defense.pdf", plot = p, width = 8, height = 8, dpi = 300)
+```
+
+```{r}
+# Load required libraries
+library(ggplot2)
+library(readr)
+
+# Load the data
+df <- read_csv("../Results/00.Get_Data/all_contig_length.csv")
+
+# Filter the data to include only lengths <= 20000
+df_filtered <- df[df$length <= 20000, ]
+
+# Create the plot
+ggplot(df_filtered, aes(x = length)) +
+  geom_histogram(aes(y = ..density..), fill = "#324f5e", alpha = 0.7, bins = 50) +
+  geom_density(color = "#e97952", size = 1.2) +
+  theme_minimal() +
+  labs(title = "Distribution of Sequence Lengths (0-20,000)",
+       x = "Length",
+       y = "Frequency") +
+  xlim(0, 20000) +
+  theme(plot.title = element_text(size = 14, face = "bold", hjust = 0.5),
+        axis.text.x = element_text(size = 10, face = "bold"),
+        axis.text.y = element_text(size = 10, face = "bold"))
+
+ggsave("../Results/01.Overview/distribution_length.pdf", width = 8, height = 8, dpi = 300)
+```
+
+
+
 

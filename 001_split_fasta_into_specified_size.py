@@ -4,11 +4,7 @@ from tqdm import tqdm
 
 def split_fasta(input_file, output_dir, chunk_size=1000):
     """
-    1. Ensure output directory exists
-    2. Initialize variables
-    3. Open and read the fasta file
-    4. Write to a new file if buffer reaches chunk size
-    5. Write remaining lines to a new file
+    Split a FASTA file into smaller chunks, each containing a specified number of sequences.
     """
     # Step 1: Ensure output directory exists
     if not os.path.exists(output_dir):
@@ -48,9 +44,10 @@ def split_fasta(input_file, output_dir, chunk_size=1000):
 
 if __name__ == "__main__":
     # Initialize argument parser
-    parser = argparse.ArgumentParser(description='Split a FASTA file into smaller chunks.')
-    parser.add_argument('-i', dest='input_file', type=str, help='Path to the input FASTA file.')
-    parser.add_argument('-o', dest='output_dir', type=str, help='Path to the output directory.')
+    parser = argparse.ArgumentParser(description='Split a FASTA file into smaller chunks based on the number of sequences.',
+                                     epilog="Example usage: python script_name.py -i path/to/your/input.fasta -o path/to/output/directory -s 500\nReplace 'script_name.py' with this script's filename, and specify the paths and chunk size as needed.")
+    parser.add_argument('-i', dest='input_file', type=str, required=True, help='Path to the input FASTA file.')
+    parser.add_argument('-o', dest='output_dir', type=str, required=True, help='Path to the output directory.')
     parser.add_argument('-s', dest='chunk_size', type=int, default=1000, help='Number of sequences per chunk.')
 
     # Parse the arguments

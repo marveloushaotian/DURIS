@@ -32,7 +32,8 @@ def process_fasta(fasta_file_path, seq_type_dict, output_file_path):
     print(f"Processed sequences saved to {output_file_path}")
 
 def main():
-    parser = argparse.ArgumentParser(description="Filter and annotate FASTA sequences based on GFF annotations.")
+    parser = argparse.ArgumentParser(description="Filter and annotate FASTA sequences based on GFF annotations.",
+                                     epilog="Example usage: python script_name.py --input_fasta path/to/your/input.fasta --gff path/to/your/annotations.gff --output_fasta path/to/your/output.fasta\nPlease replace 'script_name.py' with the actual script file name, and specify the paths for your input FASTA file, GFF annotation file, and desired output FASTA file.")
     parser.add_argument("-i", "--input_fasta", required=True, help="Input FASTA file path")
     parser.add_argument("-g", "--gff", required=True, help="GFF file path for annotations")
     parser.add_argument("-o", "--output_fasta", required=True, help="Output FASTA file path")

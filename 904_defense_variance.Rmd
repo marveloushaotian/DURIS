@@ -1,0 +1,498 @@
+---
+title: "904_defense_variance"
+author: "Haotian Zheng"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+rm(list=ls())
+do.write <- F
+load("Collect/Color.RData")
+
+library(vegan)
+library(ggplot2)
+library(dplyr)
+library(tidyr)
+```
+
+# load file and transfer.
+
+## PCA
+
+```{r}
+# Read in the metadata and data files
+metadata <- read.table("Collect/MetaData/Metadata_R_input.txt", header = TRUE, sep = "\t", stringsAsFactors = FALSE)
+data <- read.table("Collect/defense/non_redundant_defense_abundance_merged_final_right.txt", header = TRUE, sep = "\t", check.names = FALSE)
+
+# Ensure the sample names in 'data' are correctly aligned and ordered as in 'metadata'
+data_ordered <- data.frame(t(data[-1]))
+colnames(data_ordered) <- data$Defense_Name
+rownames(data_ordered) <- names(data)[-1]
+
+# Ensure that 'metadata' sample names are the row names
+metadata_ordered <- metadata
+rownames(metadata_ordered) <- metadata$Sample
+
+# Subset the 'data_ordered' to only include samples present in 'metadata'
+data_filtered <- data_ordered[rownames(metadata_ordered), ]
+
+# Merge the metadata 'Country' column back into the filtered data
+final_data <- cbind(Country = metadata_ordered$Country, data_filtered)
+
+# Now perform PCA on 'final_data' excluding the 'Country' column
+pca_result <- rda(final_data[,-1], scale = TRUE)
+
+# Extract PCA scores
+pca_scores <- scores(pca_result, display = "sites")
+
+# Create a dataframe for plotting
+pca_df <- data.frame(PC1 = pca_scores[,1], PC2 = pca_scores[,2], Country = final_data$Country)
+
+# Plot PCA results
+ggplot(pca_df, aes(x = PC1, y = PC2, color = Country)) +
+  geom_point() +
+  theme_minimal() +
+  labs(title = "PCA by Country", x = "Principal Component 1", y = "Principal Component 2")
+
+# Save the plot
+ggsave("PCA_by_Country_vegan.png", width = 8, height = 6, dpi = 300)
+```
+
+
+```{r}
+# Required libraries
+library(vegan)
+library(ggplot2)
+library(tidyr)
+library(ggpubr) # For confidence ellipses
+library(ggrepel)
+
+# Read in the metadata and data files
+metadata <- read.table("Collect/MetaData/Metadata_R_input.txt", header = TRUE, sep = "\t", stringsAsFactors = FALSE)
+data <- read.table("Collect/defense/non_redundant_defense_abundance_merged_final_right.txt", header = TRUE, sep = "\t", check.names = FALSE)
+
+# Ensure the sample names in 'data' are correctly aligned and ordered as in 'metadata'
+data_ordered <- data.frame(t(data[-1]))
+colnames(data_ordered) <- data$Defense_Name
+rownames(data_ordered) <- names(data)[-1]
+
+# Ensure that 'metadata' sample names are the row names
+metadata_ordered <- metadata
+rownames(metadata_ordered) <- metadata$Sample
+
+# Subset the 'data_ordered' to only include samples present in 'metadata'
+data_filtered <- data_ordered[rownames(metadata_ordered), ]
+
+# Merge the metadata 'Country' column back into the filtered data
+final_data <- cbind(Country = metadata_ordered$Country, data_filtered)
+
+# Perform PCA
+pca_result <- rda(final_data[,-1], scale = TRUE)
+
+# Extract PCA scores
+pca_scores <- scores(pca_result, display = "sites")
+pca_df <- data.frame(PC1 = pca_scores[,1], PC2 = pca_scores[,2], Country = final_data$Country)
+
+# Statistical analysis: PERMANOVA
+permanova_result <- adonis2(final_data[,-1] ~ final_data[, "Country"], method = "bray")
+p_value <- permanova_result$aov.tab$`Pr(>F)`[1]
+
+# Statistical analysis: PERMANOVA
+permanova_result <- adonis2(final_data[,-1] ~ final_data[, "Country"], method = "bray")
+
+# Correctly extract the p-value
+# The p-value is in the 'Pr(>F)' column of the 'aov.tab' dataframe of the permanova_result object
+p_value <- permanova_result$aov.tab$"Pr(>F)"[1]
+
+# Ensure p_value is numeric before rounding
+if(is.numeric(p_value)) {
+  p_value_rounded <- round(p_value, 4)
+} else {
+  p_value_rounded <- NA  # Assign NA if p_value is not numeric
+  warning("p-value is not numeric. Check the PERMANOVA result.")
+}
+
+# Proceed with the plot, checking if p_value_rounded is NA
+plot_title <- if(is.na(p_value_rounded)) {
+  "PCA by Country - PERMANOVA p-value not available"
+} else {
+  paste("PCA by Country - PERMANOVA p-value:", p_value_rounded)
+}
+
+# Plot PCA results with confidence ellipses and single group name labels
+ggplot(pca_df, aes(x = PC1, y = PC2, color = Country)) +
+  geom_point() +
+  stat_ellipse(type = "t", linetype = "dashed", alpha = 0.5) +
+  geom_text_repel(
+    data = aggregate(. ~ Country, pca_df, function(x) mean(range(x))),
+    aes(label = Country),
+    box.padding   = 0.5, 
+    point.padding = 0.5,
+    segment.color = 'grey50'
+  ) +
+  theme_minimal() +
+  labs(title = plot_title, x = "Principal Component 1", y = "Principal Component 2", color = "Country")
+
+# Save the plot
+ggsave("PCA_by_Country_with_group_names_vegan.png", width = 8, height = 6, dpi = 300)
+
+```
+
+```{r}
+# Required libraries
+library(vegan)
+library(ggplot2)
+library(tidyr)
+library(ggpubr) # For confidence ellipses
+library(ggrepel)
+
+# Read in the metadata and data files
+metadata <- read.table("Collect/MetaData/Metadata_R_input.txt", header = TRUE, sep = "\t", stringsAsFactors = FALSE)
+data <- read.table("Collect/defense/non_redundant_defense_abundance_merged_final_right.txt", header = TRUE, sep = "\t", check.names = FALSE)
+
+# Ensure the sample names in 'data' are correctly aligned and ordered as in 'metadata'
+data_ordered <- data.frame(t(data[-1]))
+colnames(data_ordered) <- data$Defense_Name
+rownames(data_ordered) <- names(data)[-1]
+
+# Ensure that 'metadata' sample names are the row names
+metadata_ordered <- metadata
+rownames(metadata_ordered) <- metadata$Sample
+
+# Subset the 'data_ordered' to only include samples present in 'metadata'
+data_filtered <- data_ordered[rownames(metadata_ordered), ]
+
+# Merge the metadata 'Season' column back into the filtered data
+final_data <- cbind(Season = metadata_ordered$Season, data_filtered)
+
+# Perform PCA
+pca_result <- rda(final_data[,-1], scale = TRUE)
+
+# Extract PCA scores
+pca_scores <- scores(pca_result, display = "sites")
+pca_df <- data.frame(PC1 = pca_scores[,1], PC2 = pca_scores[,2], Season = final_data$Season)
+
+# Statistical analysis: PERMANOVA
+permanova_result <- adonis2(final_data[,-1] ~ final_data[, "Season"], method = "bray")
+p_value <- permanova_result$aov.tab$`Pr(>F)`[1]
+
+# Statistical analysis: PERMANOVA
+permanova_result <- adonis2(final_data[,-1] ~ final_data[, "Season"], method = "bray")
+
+# Correctly extract the p-value
+# The p-value is in the 'Pr(>F)' column of the 'aov.tab' dataframe of the permanova_result object
+p_value <- permanova_result$aov.tab$"Pr(>F)"[1]
+
+# Ensure p_value is numeric before rounding
+if(is.numeric(p_value)) {
+  p_value_rounded <- round(p_value, 4)
+} else {
+  p_value_rounded <- NA  # Assign NA if p_value is not numeric
+  warning("p-value is not numeric. Check the PERMANOVA result.")
+}
+
+# Proceed with the plot, checking if p_value_rounded is NA
+plot_title <- if(is.na(p_value_rounded)) {
+  "PCA by Season - PERMANOVA p-value not available"
+} else {
+  paste("PCA by Season - PERMANOVA p-value:", p_value_rounded)
+}
+
+# Plot PCA results with confidence ellipses and single group name labels
+ggplot(pca_df, aes(x = PC1, y = PC2, color = Season)) +
+  geom_point() +
+  stat_ellipse(type = "t", linetype = "dashed", alpha = 0.5) +
+  geom_text_repel(
+    data = aggregate(. ~ Season, pca_df, function(x) mean(range(x))),
+    aes(label = Season),
+    box.padding   = 0.5, 
+    point.padding = 0.5,
+    segment.color = 'grey50'
+  ) +
+  theme_minimal() +
+  labs(title = plot_title, x = "Principal Component 1", y = "Principal Component 2", color = "Season")
+
+# Save the plot
+ggsave("PCA_by_Country_with_group_names_vegan.png", width = 8, height = 6, dpi = 300)
+```
+
+## version three.
+
+```{r}
+library(vegan)
+library(ggplot2)
+library(tidyr)
+library(ggpubr) # For confidence ellipses
+library(ggrepel)
+
+# Define a function to perform PCA and plot results based on a specified metadata column
+run_pca_and_plot <- function(metadata_file_path, data_file_path, grouping_variable) {
+  # Read in the metadata and data files
+  metadata <- read.table(metadata_file_path, header = TRUE, sep = "\t", stringsAsFactors = FALSE)
+  data <- read.table(data_file_path, header = TRUE, sep = "\t", check.names = FALSE)
+
+  # Ensure the sample names in 'data' are correctly aligned and ordered as in 'metadata'
+  data_ordered <- data.frame(t(data[-1]))
+  colnames(data_ordered) <- data$Defense_Name
+  rownames(data_ordered) <- names(data)[-1]
+
+  # Ensure that 'metadata' sample names are the row names
+  metadata_ordered <- metadata
+  rownames(metadata_ordered) <- metadata$Sample
+
+  # Subset the 'data_ordered' to only include samples present in 'metadata'
+  data_filtered <- data_ordered[rownames(metadata_ordered), ]
+
+  # Merge the metadata 'grouping_variable' column back into the filtered data
+  # final_data <- cbind(GroupingVariable = metadata_ordered[, grouping_variable], data_filtered)
+
+  # Adjusted line for merging metadata column into the filtered data
+  final_data <- cbind(GroupingVariable = metadata_ordered[[grouping_variable]], data_filtered)
+
+  
+  # Perform PCA
+  pca_result <- rda(final_data[,-1], scale = TRUE)
+
+  # Extract PCA scores
+  pca_scores <- scores(pca_result, display = "sites")
+  pca_df <- data.frame(PC1 = pca_scores[,1], PC2 = pca_scores[,2], GroupingVariable = final_data$GroupingVariable)
+
+  # # Statistical analysis: PERMANOVA
+  # formula <- as.formula(paste("final_data[,-1] ~ final_data[, '", grouping_variable, "']", sep = ""))
+  # permanova_result <- adonis2(formula, method = "bray")
+  # Adjusted formula creation for PERMANOVA to dynamically use the 'grouping_variable'
+  formula <- reformulate(response = paste("final_data[,-1]"), 
+                       termlabels = paste("final_data[, '", grouping_variable, "']", sep=""))
+  permanova_result <- adonis2(formula, data = final_data, method = "bray")
+
+  
+  p_value <- permanova_result$aov.tab$"Pr(>F)"[1]
+
+  # Ensure p_value is numeric before rounding
+  if(is.numeric(p_value)) {
+    p_value_rounded <- round(p_value, 4)
+  } else {
+    p_value_rounded <- NA  # Assign NA if p_value is not numeric
+    warning("p-value is not numeric. Check the PERMANOVA result.")
+  }
+
+  # Plot title based on p_value
+  plot_title <- if(is.na(p_value_rounded)) {
+    paste("PCA by", grouping_variable, "- PERMANOVA p-value not available")
+  } else {
+    paste("PCA by", grouping_variable, "- PERMANOVA p-value:", p_value_rounded)
+  }
+
+  # Plot PCA results
+  ggplot(pca_df, aes(x = PC1, y = PC2, color = GroupingVariable)) +
+    geom_point() +
+    stat_ellipse(type = "t", linetype = "dashed", alpha = 0.5) +
+    geom_text_repel(
+      data = aggregate(. ~ GroupingVariable, pca_df, function(x) mean(range(x))),
+      aes(label = GroupingVariable),
+      box.padding   = 0.5, 
+      point.padding = 0.5,
+      segment.color = 'grey50'
+    ) +
+    theme_minimal() +
+    labs(title = plot_title, x = "Principal Component 1", y = "Principal Component 2", color = grouping_variable)
+
+  # Save the plot
+  ggsave(paste("PCA_by_", grouping_variable, "_vegan.png", sep = ""), width = 8, height = 6, dpi = 300)
+}
+
+# Example usage of the function
+run_pca_and_plot("Collect/MetaData/Metadata_R_input.txt", "Collect/defense/non_redundant_defense_abundance_merged_final_right.txt", "Season")
+
+```
+
+
+##rda
+
+```{r}
+# Load necessary libraries
+library(vegan)
+library(ggplot2)
+library(gridExtra)
+
+# Read the metadata and abundance data into R
+metadata <- read.table('Collect/MetaData/Metadata_R_input.txt', header = TRUE, sep = '\t', dec = ',', check.names = FALSE)
+abundance <- read.table('Collect/defense/non_redundant_defense_abundance_merged_final_right.txt', header = TRUE, sep = '\t', check.names = FALSE)
+
+# Transpose the abundance data to match the metadata
+abundance_t <- t(abundance[-1])
+colnames(abundance_t) <- abundance$Defense_Name
+rownames(abundance_t) <- colnames(abundance)[-1]
+
+
+# Remove rows with missing values in environmental variables to avoid mismatches
+merged_data_complete <- na.omit(merged_data[, c('air_temperature', 'pH_manual', 'Al', 'Ca')])
+
+# Subset the defense abundance data to match the samples with complete cases
+abundance_data_complete <- merged_data[rownames(merged_data_complete), -(1:8)]
+
+# Check if the number of rows are the same after subsetting
+if (nrow(abundance_data_complete) != nrow(merged_data_complete)) {
+  stop("The number of rows in the defense abundance data and environmental variables does not match.")
+}
+
+# Now perform RDA
+rda_result <- rda(abundance_data_complete, merged_data_complete)
+
+# Save the plot
+pdf('RDA_Plot.pdf', width = 11, height = 8)
+
+# Plot the RDA results
+plot(rda_result, type = 'n') # 'n' creates an empty plot, which you can add layers to
+text(rda_result, display = 'sites', col = 'blue')  # For site scores
+text(rda_result, display = 'species', col = 'red') # For species scores
+text(rda_result, display = 'bp', col = 'green')    # For biplot scores
+
+# Close the PDF device
+dev.off()
+
+# Print the plot to console
+print(plot_rda)
+```
+
+
+```{r}
+# Load necessary libraries
+library(vegan)
+library(RColorBrewer)
+
+# Read the metadata and abundance data into R
+metadata <- read.table('Collect/MetaData/Metadata_R_input.txt', header = TRUE, sep = '\t', dec = ',', check.names = FALSE)
+abundance <- read.table('Collect/defense/non_redundant_defense_abundance_merged_final_right.txt', header = TRUE, sep = '\t', check.names = FALSE)
+
+# Transpose the abundance data to match the metadata
+abundance_t <- t(abundance[-1])
+colnames(abundance_t) <- abundance$Defense_Name
+rownames(abundance_t) <- colnames(abundance)[-1]
+
+# Ensure the Sample column from metadata matches the row names in abundance
+metadata$Sample <- rownames(metadata)
+
+# Merge the datasets
+merged_data <- merge(metadata, abundance_t, by.x = 'Sample', by.y = 'row.names', all.x = TRUE)
+
+# Filter out rows with missing environmental variable data
+merged_data_complete <- na.omit(merged_data[, c('Sample', 'air_temperature', 'pH_manual', 'Al', 'Ca')])
+
+# Subset the defense abundance data to match the samples with complete cases
+abundance_data_complete <- merged_data[rownames(merged_data_complete), -(1:8)]
+
+# Check if the number of rows are the same after subsetting
+if (nrow(abundance_data_complete) != nrow(merged_data_complete)) {
+  stop("The number of rows in the defense abundance data and environmental variables does not match.")
+}
+
+# Perform RDA
+rda_result <- rda(abundance_data_complete, merged_data_complete[, -(1:5)])
+
+# Define colors for groups - replace 'GroupColumn' with the actual name of your grouping column
+group_colors <- brewer.pal(max(metadata$GroupColumn), "Set1")
+names(group_colors) <- unique(metadata$GroupColumn)
+
+# Open PDF device
+pdf('RDA_Plot.pdf', width = 11, height = 8)
+
+# Base plot
+plot(rda_result, type = 'n')
+
+# Add points for samples
+with(merged_data_complete, points(rda_result, display = 'sites', col = group_colors[GroupColumn]))
+
+# Add labels for defense (species scores)
+ordilabel(rda_result, display = 'species', cex = 0.7)
+
+# Add biplot arrows for environmental variables
+ordiarrows(rda_result, display = 'bp')
+
+# Add a legend for the sample groups
+legend("topright", legend = names(group_colors), fill = group_colors, title = "Group")
+
+# Close the PDF device
+dev.off()
+
+```
+
+
+## specific defense?
+
+```{r}
+# Load necessary libraries
+library(tidyverse)
+library(ggplot2)
+
+# Read the data
+abundance_data <- read.delim("Collect/defense/non_redundant_defense_abundance_merged_final_right.txt", header = TRUE, row.names = 1)
+metadata <- read.delim("Collect/MetaData/Metadata_R_input.txt", header = TRUE)
+
+# Melt the abundance data for easier manipulation
+abundance_data_long <- abundance_data %>% t() %>% as.data.frame()
+abundance_data_long <- abundance_data_long %>% rownames_to_column("Sample")
+
+# abundance_data_long <- as.data.frame(t(abundance_data))
+# colnames(abundance_data_long) <- abundance_data$Defense_Name
+# abundance_data_long$Sample <- rownames(abundance_data_long)
+abundance_data_long <- pivot_longer(abundance_data_long, -Sample, names_to = "Defense_Name", values_to = "Abundance")
+
+
+# Merge with metadata
+merged_data <- merge(abundance_data_long, metadata, by = "Sample")
+
+# Select a subset if necessary (for example, for specific seasons, countries, etc.)
+# merged_data <- subset(merged_data, Country == "DK" & Season == "WINTER")
+
+# Function to perform t-tests and return a data frame with p-values
+perform_anova <- function(df) {
+  defenses <- unique(df$Defense_Name)
+  results <- data.frame(Defense_Name = character(), p_value = numeric(), stringsAsFactors = FALSE)
+  
+  for (defense in defenses) {
+    current_defense_data <- subset(df, Defense_Name == defense)
+    
+    # Check if LocGroup1 has more than one level
+    if (length(unique(current_defense_data$LocGroup1)) > 1) {
+      anova_result <- aov(Abundance ~ LocGroup1, data = current_defense_data)
+      anova_summary <- summary(anova_result)
+      p_value <- anova_summary[[1]]$'Pr(>F)'[1]
+      results <- rbind(results, data.frame(Defense_Name = defense, p_value = p_value))
+    } else {
+      # No test performed if there's only one group
+      results <- rbind(results, data.frame(Defense_Name = defense, p_value = NA))
+    }
+  }
+  
+  return(results)
+}
+
+# Perform ANOVA
+anova_results <- perform_anova(merged_data)
+
+# Merge ANOVA results back with the original data for plotting
+plot_data <- merge(merged_data, anova_results, by = "Defense_Name")
+
+# Plot
+p <- ggplot(plot_data, aes(x = LocGroup1, y = Abundance, fill = LocGroup1)) +
+  geom_boxplot() +
+  facet_wrap(~Defense_Name, scales = "free_y") +
+  geom_text(data = subset(plot_data, !duplicated(Defense_Name)), 
+            aes(label = ifelse(is.na(p_value), "", paste0("p = ", signif(p_value, 3)))), 
+            position = position_dodge(width = 0.9), vjust = -0.5) +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  labs(y = "Abundance", x = "Location Group")
+
+ggsave("Results/04.defense variance/nicetest.png", width = 30, height = 20, dpi = 300)
+```
+
+
+
+
+
+
+

@@ -1,0 +1,41 @@
+---
+title: "00.data prepare"
+author: "Haotian Zheng"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+rm(list=ls())
+do.write <- F
+load("Collect/Color.RData")
+```
+
+
+# Rename defense systems name into standard names.
+
+```{r}
+# metadata_path <- "Collect/MetaData/Metadata.xlsx"
+defense_path <- "Collect/overview/non_redundant_padloc.csv"
+
+# metadata_df <- read_excel(metadata_path)
+defense_df <- read.csv(defense_path)
+
+defense_df$Sample <- gsub("-", "_", defense_df$Sample)
+
+# Step 2: Rename columns
+UniName <- read.delim("Collect/Defense_Name_Standard/Defense_system_name_list.txt", header = TRUE, check.names = FALSE)
+UniName_PADLOC <- UniName[,c("Unified Name","Unified Subtype Name","PADLOC Subtype Name")]
+colnames(UniName_PADLOC) <- c("Unified_Name", "Unified_Subtype_Name", "SubType")
+
+# Filter out NA and empty strings in SubType
+UniName_PADLOC <- UniName_PADLOC %>% filter(!is.na(SubType) & SubType != "")
+
+# Merge defense_df with UniName_PADLOC on 'system' and 'SubType'
+defense_df <- left_join(defense_df, UniName_PADLOC, by = c("system" = "SubType"))
+if(do.write){
+  write.csv(defense_df, "Collect/overview/non_redundant_padloc_union_defense_name.csv", row.names = FALSE)
+}
+```
+

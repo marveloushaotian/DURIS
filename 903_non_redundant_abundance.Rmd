@@ -1,0 +1,59 @@
+---
+title: "903_non_redundant_abundance"
+author: "Haotian Zheng"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+rm(list=ls())
+do.write <- F
+load("Collect/Color.RData")
+
+library(ggplot2)
+library(reshape2)
+```
+
+# read and transfer files.
+
+```{r}
+# Set the file path (replace with the path to your actual data file)
+# file_path <- "Collect/defense/non_redundant_defense_abundance_merged_final_right.txt"
+# 
+# # Read the data into R
+# defense_data <- read.table(file_path, header = TRUE, sep = "\t", check.names = FALSE)
+
+file_path <- "Collect/overview/plasmidome_circular_padloc_matrix.csv"
+
+defense_data <- read.csv(file_path, header = TRUE, check.names = FALSE)
+
+
+
+# Gather the data into a long format suitable for ggplot2
+long_data <- melt(defense_data, id.vars = "Defense_Name", variable.name = "Sample", value.name = "Abundance")
+
+# Order the Defense_Name factor by the total abundance to stack largest at the bottom
+long_data$Defense_Name <- factor(long_data$Defense_Name, 
+                                 levels = long_data %>% 
+                                   group_by(Defense_Name) %>%
+                                   summarise(Total = sum(Abundance)) %>%
+                                   arrange(Total) %>%
+                                   .$Defense_Name)
+
+# Define a color palette (customize this with the colors you want)
+color_palette <- rev(papercolor_60)[13:63]
+
+# Plot the data as a stacked bar chart with the ordered factor and custom colors
+ggplot(long_data, aes(x = Sample, y = Abundance, fill = Defense_Name)) +
+  geom_bar(stat = "identity") +
+  scale_fill_manual(values = color_palette) +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1),
+         legend.position="right") +
+  labs(fill = "Defense Systems", y = "Abundance", x = "Sample") +
+  guides(fill = guide_legend(reverse = TRUE))  # Reverse the legend order
+
+# Save the plot to a file
+ggsave("Results/03.abundance of defense systems/plasmidome_cricular_padloc_matrix.pdf", width = 16, height = 8, dpi = 300)
+```
+

@@ -19,9 +19,9 @@ library(plotrix)
 
 ```{r}
 # Step 1: Data Import
-load("../Results/00.Get_Data/Color.RData")
-metadata_path <- "../Results/00.Get_Data/Metadata.xlsx"
-defense_path <- "../Results/00.Get_Data/ALL_extracted_defense.csv"
+load("Collect/Color.RData")
+metadata_path <- "Collect/MetaData/Metadata.xlsx"
+defense_path <- "Collect/overview/plasmidome_circular_padloc.csv"
 
 metadata_df <- read_excel(metadata_path)
 defense_df <- read.csv(defense_path)
@@ -29,7 +29,7 @@ defense_df <- read.csv(defense_path)
 defense_df$Sample <- gsub("-", "_", defense_df$Sample)
 
 # Step 2: Rename columns
-UniName <- read.delim("../Results/00.Get_Data/Defense_system_name_list.txt", header = TRUE, check.names = FALSE)
+UniName <- read.delim("Collect/Defense_Name_Standard/Defense_system_name_list.txt", header = TRUE, check.names = FALSE)
 UniName_PADLOC <- UniName[,c("Unified Name","Unified Subtype Name","PADLOC Subtype Name")]
 colnames(UniName_PADLOC) <- c("Unified_Name", "Unified_Subtype_Name", "SubType")
 
@@ -78,7 +78,7 @@ for (i in seq_along(plot_names)) {
   p <- plot_data(plot_names[i], paste("Defense System Distribution by", plot_names[i]))
   print(p)
   ggsave(
-    filename = paste0("../Results/01.Overview/Defense_System_Distribution_by_", plot_names[i], ".pdf"),
+    filename = paste0("Results/03.abundance of defense systems/Defense_System_Distribution_by_", plot_names[i], ".pdf"),
     plot = p,
     width = 10,
     height = 10,

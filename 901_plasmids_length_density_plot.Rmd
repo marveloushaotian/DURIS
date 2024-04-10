@@ -1,0 +1,84 @@
+---
+title: "01.plasmids length density plot"
+author: "Haotian Zheng"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+rm(list=ls())
+do.write <- F
+load("Collect/Color.RData")
+
+library(ggplot2)
+library(scales)
+```
+
+# read and tranfer files.
+
+```{r}
+
+# Define the paths to the six files
+file_paths <- c("Collect/overview/non_redundant_ID_length.csv", "Collect/overview/non_redundant_padloc_union_defense_name.csv", "Collect/overview/plasmidome_circular_ID_length.csv", "Collect/overview/plasmidome_circular_padloc_union_defense_name.csv", "Collect/overview/plasmidome_linear_ID_length.csv", "Collect/overview/plasmidome_linear_padloc_union_defense_name.csv")
+
+# Initialize an empty data frame to store combined data
+combined_data <- data.frame(seqid = character(), length = numeric(), source = character())
+
+# Function to extract length from seqid
+extract_length <- function(seqid) {
+  as.numeric(gsub(".*_length_([0-9]+).*", "\\1", seqid))
+}
+
+# Read and process each file
+for (file_path in file_paths) {
+  # Read the first line to determine the file type
+  first_line <- readLines(file_path, n = 1)
+  if (grepl("seqid,length", first_line)) {
+    # File format as in Screenshot 1
+    data <- read.csv(file_path, stringsAsFactors = FALSE)
+  } else {
+    # File format as in Screenshot 2, process to extract seqid and length
+    data <- read.csv(file_path, stringsAsFactors = FALSE)
+    data$length <- sapply(data$seqid, extract_length)
+    data <- data[, c("seqid", "length")]
+  }
+  # Add source file identifier
+  data$source <- basename(file_path)
+  # Combine data
+  combined_data <- rbind(combined_data, data)
+}
+
+# Create the density plot
+
+p <- ggplot(combined_data, aes(x=length, color=source)) +
+  geom_density() +
+  scale_color_manual(values=papercolor_60,
+                     name="Plasmids Source",  # Change the legend title
+                     labels=c("Assemble all", "Assemble with defense", "Plasmidome circilar all", "Plasmidome circular with defense", "Plasmidome linear all", "Plasmidome linear with defense")) +
+  scale_y_continuous(labels=label_number()) +  # Disable scientific notation for y-axis
+  coord_cartesian(xlim=c(0, 25000)) +  # Set x-axis limits
+  theme_bw() +
+  theme(legend.position="right",
+        legend.title = element_text(size=12, face="bold"),  # Customize legend title appearance
+        legend.text = element_text(size=10),  # Customize legend text appearance
+        axis.text.x = element_text(angle=0, hjust=0.5, face="bold"),  # Tilt x-axis labels for better fit
+        axis.text.y = element_text(face="bold"),
+        axis.title = element_text(size=14, face="bold"),  # Bold axis titles
+        plot.title = element_text(hjust = 0.5, size=16, face="bold"),
+        legend.key = element_rect(fill = 'transparent'),
+        legend.spacing.y = unit(1, "cm"),
+        legend.key.width = unit(1, "cm")) +  # Center and bold plot title
+  labs(x="Plasmids length", y="Density")  # Add and format titles
+p
+
+# Save the plot to a file
+ggsave("Results/01.plasmids length density plot/all_density_plot.pdf", plot = p, width = 15, height = 8)
+
+```
+
+
+## find what defense is on the plot?
+
+
+

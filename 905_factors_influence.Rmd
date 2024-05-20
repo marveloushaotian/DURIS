@@ -1,0 +1,71 @@
+---
+title: "905_link_defense_with_plasmids_features"
+author: "Haotian Zheng"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(vegan)
+library(ggplot2)
+library(ggrepel)  # 用于美化图形中的文本标签
+```
+
+
+```{r}
+library(vegan)
+
+# 读取数据
+data <- read.csv('Collect/combined_data_for_RDA.csv', row.names=1)
+
+# 分离基因表达数据和环境变量
+gene_expression <- data[,1:38]  # 假设前38列是基因表达数据
+environmental_data <- data[,39:69]  # 假设后31列是环境变量
+
+# 进行RDA分析
+rda_result <- rda(gene_expression ~ ., data = environmental_data)
+
+# 查看结果
+summary(rda_result)
+
+# 绘制RDA图
+plot(rda_result)
+
+```
+```{r}
+library(vegan)
+library(ggplot2)
+
+# 读取数据
+data <- read.csv('Collect/combined_data_for_RDA.csv', row.names=1)
+
+# 分离基因表达数据和环境变量
+gene_expression <- data[,1:38]  # 根据实际数据调整
+environmental_data <- data[,39:69]  # 根据实际数据调整
+
+data$RM_type_I <- log1p(data$RM_type_I)
+
+# 进行RDA分析
+rda_result <- rda(gene_expression ~ ., data = environmental_data)
+
+# 使用ggplot绘制美化后的RDA图
+rda_scores <- scores(rda_result, display="sites")  # 获取样本得分
+env_scores <- scores(rda_result, display="species")  # 获取环境变量得分
+colnames(env_scores) <- c("V1", "V2")  # 确保列名是V1和V2，如果不是，请调整为正确的列名
+
+# 创建一个基于ggplot的图
+p <- ggplot() +
+  geom_point(aes(x=rda_scores[,1], y=rda_scores[,2]), shape=21, fill="blue", colour="black", size=3) +
+  geom_text(aes(x=rda_scores[,1], y=rda_scores[,2], label=rownames(rda_scores)), nudge_x=0.02, nudge_y=0.02, check_overlap = TRUE) +
+  geom_segment(data=env_scores, aes(x=0, y=0, xend=V1, yend=V2), arrow=arrow(length=unit(0.2, "inches")), color="red") +
+  geom_text(data=env_scores, aes(x=V1, y=V2, label=rownames(env_scores)), nudge_x=0.02, nudge_y=0.02, color="red") +
+  labs(title="RDA Analysis", x="RDA1", y="RDA2") +
+  theme_minimal()
+
+# 打印图表
+print(p)
+
+ggsave("Results/rda.pdf", plot = p, width = 16, height = 9, dpi = 300, units = "in")
+```
+

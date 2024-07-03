@@ -3,9 +3,12 @@ import subprocess
 from pathlib import Path
 from tqdm import tqdm
 import logging
+import time
+import os
 
-# Setup logging
-logging.basicConfig(filename='bam_sorting.log', level=logging.INFO, format='%(asctime)s:%(levelname)s:%(message)s')
+# Setup logging with unique filename
+log_filename = f'bam_sorting_{time.strftime("%Y%m%d_%H%M%S")}_{os.getpid()}.log'
+logging.basicConfig(filename=log_filename, level=logging.INFO, format='%(asctime)s:%(levelname)s:%(message)s')
 
 def sort_bam_files(input_dir, output_dir):
     input_dir = Path(input_dir)

@@ -3,9 +3,12 @@ import subprocess
 from pathlib import Path
 from tqdm import tqdm
 import logging
+import time
+import os
 
-# Setup logging
-logging.basicConfig(filename='sam_to_bam_conversion.log', level=logging.INFO, format='%(asctime)s:%(levelname)s:%(message)s')
+# Setup logging with unique filename
+log_filename = f'sam_to_bam_conversion_{time.strftime("%Y%m%d_%H%M%S")}_{os.getpid()}.log'
+logging.basicConfig(filename=log_filename, level=logging.INFO, format='%(asctime)s:%(levelname)s:%(message)s')
 
 def convert_sam_to_bam(input_dir, output_dir):
     input_dir = Path(input_dir)

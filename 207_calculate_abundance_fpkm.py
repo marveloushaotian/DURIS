@@ -3,9 +3,12 @@ import subprocess
 from pathlib import Path
 from tqdm import tqdm
 import logging
+import time
+import os
 
-# Setup logging
-logging.basicConfig(filename='msamtools_profile.log', level=logging.INFO, format='%(asctime)s:%(levelname)s:%(message)s')
+# Setup logging with unique filename
+log_filename = f'msamtools_profile_{time.strftime("%Y%m%d_%H%M%S")}_{os.getpid()}.log'
+logging.basicConfig(filename=log_filename, level=logging.INFO, format='%(asctime)s:%(levelname)s:%(message)s')
 
 def profile_bam_files(input_dir, output_dir):
     input_dir = Path(input_dir)

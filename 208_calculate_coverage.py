@@ -3,9 +3,12 @@ import subprocess
 from pathlib import Path
 from tqdm import tqdm
 import logging
+import time
+import os
 
-# Setup logging
-logging.basicConfig(filename='bam_coverage_analysis.log', level=logging.INFO, format='%(asctime)s:%(levelname)s:%(message)s')
+# Setup logging with unique filename
+log_filename = f'bam_coverage_analysis_{time.strftime("%Y%m%d_%H%M%S")}_{os.getpid()}.log'
+logging.basicConfig(filename=log_filename, level=logging.INFO, format='%(asctime)s:%(levelname)s:%(message)s')
 
 def coverage_analysis(input_dir, output_dir):
     input_dir = Path(input_dir)

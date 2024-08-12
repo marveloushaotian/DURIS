@@ -7,10 +7,15 @@ parser.add_argument('-i', '--input', type=str, required=True, help='Path to inpu
 parser.add_argument('-o', '--output', type=str, required=True, help='Path to output file')
 args = parser.parse_args()
 
-# Load the data
+# Load the data without specifying dtype initially
 df = pd.read_csv(args.input, sep='\t')
 
-# Drop duplicate contig entries
+# Optionally, inspect and convert columns if needed
+# For example, if 'Defense_Number' should be an integer but contains float values, you can convert it safely:
+df['Defense_Number'] = pd.to_numeric(df['Defense_Number'], errors='coerce').fillna(0).astype(int)
+
+# If any other columns need conversion, handle them similarly
+# Drop duplicate contig entries to get unique contig lengths
 unique_contigs = df.drop_duplicates(subset='Contig_ID')
 
 # Group by Contig_Group, Location_BAF, and Defense_Type

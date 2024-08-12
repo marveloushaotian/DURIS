@@ -13,16 +13,16 @@ df = pd.read_csv(input_file, sep='\t')
 
 # Group and aggregate the data
 grouped = df.groupby(['Contig_Group', 'Location_BAF', 'Sample']).agg({
-    'Defense_Num': 'sum',
+    'Defense_Number': 'sum',
     'Contig_Length': 'sum'
 }).reset_index()
 
 # Calculate the final result
-grouped['GCGB'] = grouped['Defense_Num'] * 1000000 / grouped['Contig_Length']
+grouped['GCGB'] = grouped['Defense_Number'] * 1000000 / grouped['Contig_Length']
 
 # Export the result
 output_file = args.output
-grouped.to_csv(output_file, sep='\t', index=False, columns=['Contig_Group', 'Location_BAF', 'Sample', 'Defense_Num', 'Contig_Length', 'GCGB'])
+grouped.to_csv(output_file, sep='\t', index=False, columns=['Contig_Group', 'Location_BAF', 'Sample', 'Defense_Number', 'Contig_Length', 'GCGB'])
 
 print(f"Results have been exported to {output_file}")
 

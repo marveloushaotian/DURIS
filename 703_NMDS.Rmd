@@ -9,6 +9,7 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+# NMDS in before and after filter
 
 ```{r}
 # Load necessary libraries
@@ -16,94 +17,7 @@ library(vegan)
 library(ggplot2)
 
 # Set the directory path
-directory_path <- "Collect/01_Defense/01_TPM_Abundance"
-
-# Get all files in the directory
-files <- list.files(directory_path, full.names = TRUE)
-
-# Define the column patterns for Before_Filter and After_Filter
-before_filter_columns <- c("Sample_01", "Sample_02", "Sample_03", "Sample_04", "Sample_06",
-                           "Sample_07", "Sample_08", "Sample_09", "Sample_11", "Sample_12",
-                           "Sample_13", "Sample_14", "Sample_16", "Sample_17", "Sample_18",
-                           "Sample_20", "Sample_21", "Sample_22", "Sample_24", "Sample_25",
-                           "Sample_26", "Sample_28", "Sample_29", "Sample_30", "Sample_32",
-                           "Sample_33", "Sample_34", "Sample_36", "Sample_37", "Sample_38",
-                           "Sample_40", "Sample_41", "Sample_42", "Sample_43", "Sample_45",
-                           "Sample_46", "Sample_47", "Sample_48", "Sample_50", "Sample_51",
-                           "Sample_52", "Sample_53", "Sample_55", "Sample_56", "Sample_57",
-                           "Sample_59", "Sample_60", "Sample_61", "Sample_63", "Sample_64",
-                           "Sample_65", "Sample_67", "Sample_68", "Sample_69", "Sample_71",
-                           "Sample_72", "Sample_73", "Sample_75", "Sample_76", "Sample_77")
-
-after_filter_columns <- c("Sample_05", "Sample_10", "Sample_15", "Sample_19", "Sample_23",
-                          "Sample_27", "Sample_31", "Sample_35", "Sample_39", "Sample_44",
-                          "Sample_49", "Sample_54", "Sample_58", "Sample_62", "Sample_66",
-                          "Sample_70", "Sample_74", "Sample_78")
-
-# Function to process each file
-process_file <- function(file_path) {
-  # Load the data
-  data <- read.table(file_path, header = TRUE, sep = "\t", row.names = 1)
-  
-  # Remove columns with all zeros
-  data <- data[, colSums(data != 0) > 0]
-  
-  # Separate the groups based on predefined columns
-  group1 <- data[, colnames(data) %in% before_filter_columns]
-  group2 <- data[, colnames(data) %in% after_filter_columns]
-  
-  # Rename columns for clarity
-  colnames(group1) <- paste("Before_Filter", seq_len(ncol(group1)), sep = "_")
-  colnames(group2) <- paste("After_Filter", seq_len(ncol(group2)), sep = "_")
-  
-  # Combine groups for analysis
-  combined_data <- cbind(group1, group2)
-  
-  # Transpose the data to have samples as rows
-  combined_data_t <- t(combined_data)
-  
-  # Perform NMDS
-  nmds <- metaMDS(combined_data_t, distance = "bray", k = 2, trymax = 100)
-  
-  # Extract NMDS scores (site scores)
-  nmds_scores <- as.data.frame(scores(nmds, display = "sites"))
-  
-  # Add group information
-  nmds_scores$group <- rep(c("Before_Filter", "After_Filter"), c(ncol(group1), ncol(group2)))
-  
-  # Perform ANOSIM
-  group_factor <- factor(rep(c("Before_Filter", "After_Filter"), c(ncol(group1), ncol(group2))))
-  anosim_result <- anosim(combined_data_t, group_factor, distance = "bray")
-  
-  # Create annotation text for ANOSIM results
-  anosim_text <- paste("ANOSIM R:", round(anosim_result$statistic, 3), "\np-value:", format(anosim_result$signif, scientific = TRUE))
-  
-  # Plot NMDS
-  nmds_plot <- ggplot(nmds_scores, aes(x = NMDS1, y = NMDS2, color = group)) +
-    geom_point(size = 3) +
-    theme_minimal() +
-    labs(title = "NMDS Plot", x = "NMDS1", y = "NMDS2") +
-    annotate("text", x = min(nmds_scores$NMDS1), y = max(nmds_scores$NMDS2), label = anosim_text, hjust = 0, vjust = 1, size = 5)
-  
-  # Save NMDS plot
-  plot_filename <- paste0("NMDS_plot_", basename(file_path), ".png")
-  ggsave(plot_filename, plot = nmds_plot)
-}
-
-# Process all files
-lapply(files, process_file)
-
-```
-
-
-
-```{r}
-# Load necessary libraries
-library(vegan)
-library(ggplot2)
-
-# Set the directory path
-directory_path <- "Collect/01_Defense/01_TPM_Abundance"
+directory_path <- "Collect/01_Defense/01_TPM_Abundance_without_PDC/"
 
 # Get all files in the directory
 files <- list.files(directory_path, full.names = TRUE)
@@ -181,6 +95,7 @@ process_file <- function(file_path) {
   nmds_plot <- ggplot(nmds_scores, aes(x = NMDS1, y = NMDS2, color = group)) +
     geom_point(size = 3) +
     geom_path(data = conf_intervals, aes(x = NMDS1, y = NMDS2, group = group, color = group), linetype = 2) +
+    scale_color_manual(values = c("Before_Filter" = "#BF7EA2", "After_Filter" = "#0F7BA6")) +  # 自定义颜色
     theme_minimal() +
     labs(title = "NMDS Plot", x = "NMDS1", y = "NMDS2") +
     annotate("text", x = min(nmds_scores$NMDS1), y = max(nmds_scores$NMDS2), label = anosim_text, hjust = 0, vjust = 1, size = 5)
@@ -202,5 +117,197 @@ veganCovEllipse <- function(cov, center, scale) {
 # Process all files
 lapply(files, process_file)
 
+```
+
+
+# NMDS in country difference
+
+```{r}
+# Load necessary libraries
+library(vegan)
+library(ggplot2)
+
+# Set the directory path
+directory_path <- "Collect/01_Defense/01_TPM_Abundance_without_PDC/"
+
+# Get all files in the directory
+files <- list.files(directory_path, full.names = TRUE)
+
+# Define the column patterns for DK, SP, and UK groups
+dk_columns <- c("Sample_01", "Sample_02", "Sample_03", "Sample_04", "Sample_06",
+                "Sample_07", "Sample_08", "Sample_09", "Sample_11", "Sample_12",
+                "Sample_13", "Sample_14", "Sample_40", "Sample_41", "Sample_42",
+                "Sample_43", "Sample_45", "Sample_46", "Sample_47", "Sample_48",
+                "Sample_50", "Sample_51", "Sample_52", "Sample_53", "Sample_05",
+                "Sample_10", "Sample_15", "Sample_44", "Sample_49", "Sample_54")
+
+sp_columns <- c("Sample_28", "Sample_29", "Sample_30", "Sample_32", "Sample_33",
+                "Sample_34", "Sample_36", "Sample_37", "Sample_38", "Sample_67",
+                "Sample_68", "Sample_69", "Sample_71", "Sample_72", "Sample_73",
+                "Sample_75", "Sample_76", "Sample_77", "Sample_31", "Sample_35",
+                "Sample_39", "Sample_70", "Sample_74", "Sample_78")
+
+uk_columns <- c("Sample_16", "Sample_17", "Sample_18", "Sample_20", "Sample_21",
+                "Sample_22", "Sample_24", "Sample_25", "Sample_26", "Sample_55",
+                "Sample_56", "Sample_57", "Sample_59", "Sample_60", "Sample_61",
+                "Sample_63", "Sample_64", "Sample_65", "Sample_19", "Sample_23",
+                "Sample_27", "Sample_58", "Sample_62", "Sample_66")
+
+# Function to process each file
+process_file <- function(file_path) {
+  # Load the data
+  data <- read.table(file_path, header = TRUE, sep = "\t", row.names = 1)
+  
+  # Remove columns with all zeros
+  data <- data[, colSums(data != 0) > 0]
+  
+  # Separate the groups based on predefined columns
+  group_dk <- data[, colnames(data) %in% dk_columns]
+  group_sp <- data[, colnames(data) %in% sp_columns]
+  group_uk <- data[, colnames(data) %in% uk_columns]
+  
+  # Rename columns for clarity
+  colnames(group_dk) <- paste("DK", seq_len(ncol(group_dk)), sep = "_")
+  colnames(group_sp) <- paste("SP", seq_len(ncol(group_sp)), sep = "_")
+  colnames(group_uk) <- paste("UK", seq_len(ncol(group_uk)), sep = "_")
+  
+  # Combine groups for analysis
+  combined_data <- cbind(group_dk, group_sp, group_uk)
+  
+  # Transpose the data to have samples as rows
+  combined_data_t <- t(combined_data)
+  
+  # Perform NMDS
+  nmds <- metaMDS(combined_data_t, distance = "bray", k = 2, trymax = 100)
+  
+  # Extract NMDS scores (site scores)
+  nmds_scores <- as.data.frame(scores(nmds, display = "sites"))
+  
+  # Add group information
+  nmds_scores$group <- rep(c("DK", "SP", "UK"), c(ncol(group_dk), ncol(group_sp), ncol(group_uk)))
+  
+  # Calculate centroids and confidence intervals
+  centroids <- aggregate(cbind(NMDS1, NMDS2) ~ group, data = nmds_scores, FUN = mean)
+  conf_intervals <- data.frame()
+  for (g in unique(nmds_scores$group)) {
+    group_data <- nmds_scores[nmds_scores$group == g, 1:2]
+    cov_matrix <- cov(group_data)
+    mean_values <- colMeans(group_data)
+    ellipse_points <- veganCovEllipse(cov_matrix, mean_values, 0.95)
+    ellipse_points$group <- g
+    conf_intervals <- rbind(conf_intervals, ellipse_points)
+  }
+  
+  # Perform ANOSIM
+  group_factor <- factor(rep(c("DK", "SP", "UK"), c(ncol(group_dk), ncol(group_sp), ncol(group_uk))))
+  anosim_result <- anosim(combined_data_t, group_factor, distance = "bray")
+  
+  # Create annotation text for ANOSIM results
+  anosim_text <- paste("ANOSIM R:", round(anosim_result$statistic, 3), "\np-value:", format(anosim_result$signif, scientific = TRUE))
+  
+  # Plot NMDS with confidence ellipses
+  nmds_plot <- ggplot(nmds_scores, aes(x = NMDS1, y = NMDS2, color = group)) +
+    geom_point(size = 3) +
+    geom_path(data = conf_intervals, aes(x = NMDS1, y = NMDS2, group = group, color = group), linetype = 2) +
+    scale_color_manual(values = c("DK" = "#BF7EA2", "SP" = "#0F7BA6", "UK" = "#e1834e")) +  # Custom colors
+    theme_minimal() +
+    labs(title = "NMDS Plot", x = "NMDS1", y = "NMDS2") +
+    annotate("text", x = min(nmds_scores$NMDS1), y = max(nmds_scores$NMDS2), label = anosim_text, hjust = 0, vjust = 1, size = 5)
+  
+  # Save NMDS plot as PDF
+  plot_filename <- paste0("NMDS_plot_", basename(file_path), ".pdf")
+  ggsave(plot_filename, plot = nmds_plot, device = "pdf")
+}
+
+# Function to generate ellipse points for confidence intervals
+veganCovEllipse <- function(cov, center, scale) {
+  library(MASS)
+  angles <- seq(0, 2 * pi, length.out = 100)
+  unit_circle <- cbind(cos(angles), sin(angles))
+  ellipse <- t(center + scale * t(unit_circle %*% chol(cov)))
+  return(as.data.frame(ellipse))
+}
+
+# Process all files
+lapply(files, process_file)
+```
+
+# NMDS - taxonomy - before filter and after filter - with defense and without defense
+
+```{r}
+# Load required libraries
+library(vegan)
+library(ggplot2)
+library(dplyr)
+
+# Set file paths
+input_file <- "Collect/All_contigs_info_without_PDC.txt"  # 替换为您的输入文件路径
+output_file <- "output_nmds_plot.png"  # 替换为您想保存输出图片的路径
+
+# Read the data
+data <- read.delim(input_file, sep="\t", header=TRUE)
+
+# Function to process data
+process_data <- function(df, filter_defense = FALSE) {
+  # Filter out 'No' values in Kaiju_Phylum
+  df <- df[df$Kaiju_Phylum != "No", ]
+  
+  if (filter_defense) {
+    df <- df[!is.na(df$Defense_Type) & df$Defense_Type != "No", ]
+  }
+  
+  # Create a wide table
+  wide_table <- table(df$Location_BAF, df$Country, df$Kaiju_Phylum)
+  wide_df <- as.data.frame.matrix(wide_table)
+  
+  return(wide_df)
+}
+
+# Process all data
+all_data <- process_data(data)
+
+# Process data with defense filter
+defense_data <- process_data(data, filter_defense = TRUE)
+
+# Merge the two datasets
+merged_data <- all_data + defense_data
+
+# Perform NMDS
+nmds_result <- metaMDS(merged_data, distance = "bray", k = 2)
+
+# Extract NMDS coordinates
+nmds_coords <- as.data.frame(scores(nmds_result))
+nmds_coords$Location_BAF <- rownames(merged_data) %>% 
+  strsplit("\\.", fixed = TRUE) %>% 
+  sapply(`[`, 1)
+nmds_coords$Country <- rownames(merged_data) %>% 
+  strsplit("\\.", fixed = TRUE) %>% 
+  sapply(`[`, 2)
+
+# Perform ANOSIM
+anosim_result <- anosim(merged_data, 
+                        grouping = paste(nmds_coords$Location_BAF, nmds_coords$Country, sep="_"), 
+                        distance = "bray", permutations = 999)
+
+# Create NMDS plot
+p <- ggplot(nmds_coords, aes(x = NMDS1, y = NMDS2, color = Location_BAF, shape = Country)) +
+  geom_point(size = 3) +
+  theme_minimal() +
+  labs(title = paste("NMDS Plot\nANOSIM R:", round(anosim_result$statistic, 3), 
+                     ", p-value:", round(anosim_result$signif, 3)),
+       x = "NMDS1", y = "NMDS2") +
+  scale_color_manual(values = c("BF" = "#1f77b4", "AF" = "#ff7f0e"))
+
+# Save the plot
+ggsave(output_file, p, width = 10, height = 8, dpi = 300)
+
+# Save NMDS coordinates
+write.csv(nmds_coords, gsub("\\.png$", "_coordinates.csv", output_file), row.names = FALSE)
+
+cat("NMDS plot saved as", output_file, "\n")
+cat("NMDS coordinates saved as", gsub("\\.png$", "_coordinates.csv", output_file), "\n")
+
+# Print ANOSIM results
+print(anosim_result)
 ```
 

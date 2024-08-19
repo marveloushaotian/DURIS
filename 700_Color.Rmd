@@ -1,0 +1,128 @@
+---
+title: "Color"
+author: "Haotian Zheng"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+
+"#ffffff"
+
+
+
+# heatmap
+
+c("#a673a3", "#a775a4", "#aa7aa7", "#af82ac", "#b58db3", "#be9bbc", "#c6a9c6", "#ceb7ce", "#d5c3d5", "#dcd0dd", "#e3dce4", "#e8e7e9", "#eaeeea", "#e9f1e6", "", "#e1f0d6", "#dbeecb", "#d6ecc1", "#d1eab6", "#cbe8aa", "#c5e59d", "#bfe292", "#b9df89", "#b3dc82", "#add97d", "#a6d579", "#a0d277", "#99ce76", "#92ca77", "#8bc67b", "#83c280", "#7cbd85", "#75b989", "#6eb58c", "#67b090", "#60ac93", "#59a795", "#54a296", "#509d95", "#4d9793", "#4a9190", "#478c8c", "#458689", "#428085", "#407981", "#3d737d", "#3b6e79", "#3a6a77", "#396876", "#396775"
+)
+
+c("#aa7aa7","#ceb7ce","#eaeeea","#d6ecc1","#b9df89","#99ce76","#75b989","#54a296","#458689","#3a6a77")
+
+colors <- c("#aa7aa7", "#c88b9c", "#d4a29a", "#d6bca7", "#d8d4c1", "#cdd2c2", "#c4cfc3", "#beccc5", "#9cb3ad", "#7a9b99", "#598287", "#3a6a77")
+
+c("#351540", "#422B77", "#3B4C88", "#30688D", "#25848C", "#269E84","#35B777", "#72CB54", "#B3DB37", "#F8E620")
+
+# few color
+
+## standard paris olympic color.
+c("#BF7EA2","#BF9FB1","#1E2040","#0F7BA6","#BFAB6F")
+
+## the color match paris olympic but not the same.
+c("#23496d","#8b68ab","#8eb19a","#7396bf","#87be5f")
+
+c("#b2dba7","#bfa8cd","#6d2b80")
+
+c("#F9B0E2","#14BEBD","#0B2E55")
+
+
+# stack plot color 20
+colors <- c("#c0dbe6","#2b526f","#4a9ba7","#a3cbd6","#c0cfbd","#9bb88a","#7b9b64","#d0cab7","#c6a4c5","#9b7baa","#7a7aaf","#434d91","#5284a2","#82b4c8","#9d795d","#d1b49a","#fff08c","#e1834e","#cd6073","#ffc7c9","#969696","#d1d9e2")
+```
+
+
+```{r}
+# 安装并加载必要的包
+library(ggplot2)
+library(tidyr)
+
+# 示例数据集
+data <- data.frame(
+  Category = rep(c("A", "B", "C", "D", "E"), each = 22),
+  Subcategory = rep(paste0("Subcat", 1:22), times = 5),
+  Value = sample(1:110, 110, replace = TRUE)
+)
+
+# 颜色列表（重复使用提供的颜色列表以满足20种颜色的需求）
+colors <- c("#aae1e0","#2f6c81","#4a9ba7","#a3cbd6","#c0cfbd","#9bb88a","#7b9b64","#d0cab7","#c6a4c5","#9b7baa","#7a7aaf","#434d91","#5284a2","#82b4c8","#9d795d","#d1b49a","#fff08c","#e1834e","#cd6073","#ffc7c9","#969696","#d1d9e2")
+
+# 按子类别的反序排列数据框
+data$Subcategory <- factor(data$Subcategory, levels = rev(unique(data$Subcategory)))
+
+# 反转颜色列表的顺序
+colors <- rev(colors)
+
+# 绘制堆叠柱状图
+ggplot(data, aes(x = Category, y = Value, fill = Subcategory)) +
+  geom_bar(stat = "identity") +
+  scale_fill_manual(values = colors) +
+  theme_minimal() +
+  labs(title = "Stacked Bar Chart with 20 Subcategories per Category", x = "Category", y = "Value")
+
+```
+
+```{r}
+# 安装并加载必要的包
+library(ggplot2)
+library(tidyr)
+
+# 示例数据集
+set.seed(123)  # 设置随机种子以获得可重复的结果
+data <- data.frame(
+  Category = rep(c("A", "B", "C", "D", "E"), each = 22),
+  Subcategory = rep(paste0("Subcat", 1:22), times = 5),
+  Value = sample(1:500, 110, replace = TRUE)  # 使用更大的值范围
+)
+
+# 颜色列表
+colors <- c("#aae1e0","#2f6c81","#4a9ba7","#a3cbd6","#c0cfbd","#9bb88a","#7b9b64","#d0cab7","#c6a4c5","#9b7baa",
+            "#7a7aaf","#434d91","#5284a2","#82b4c8","#9d795d","#d1b49a","#fff08c","#e1834e","#cd6073","#ffc7c9",
+            "#969696","#d1d9e2")
+
+# 按子类别的反序排列数据框
+data$Subcategory <- factor(data$Subcategory, levels = rev(unique(data$Subcategory)))
+
+# 反转颜色列表的顺序
+colors <- rev(colors)
+
+# 绘制堆叠柱状图
+ggplot(data, aes(x = Category, y = Value, fill = Subcategory)) +
+  geom_bar(stat = "identity") +
+  scale_fill_manual(values = colors) +
+  theme_minimal() +
+  labs(title = "Stacked Bar Chart with 22 Subcategories per Category", x = "Category", y = "Value")
+
+```
+```{r}
+library(igraph)
+library(ggraph)
+library(tidyverse)
+
+# 创建一个示例网络
+edges <- data.frame(
+  from = c("A", "A", "B", "C", "D", "E", "E", "E"),
+  to = c("B", "C", "D", "E", "F", "F", "G", "H")
+)
+
+graph <- graph_from_data_frame(edges, directed = FALSE)
+
+ggraph(graph, layout = "fr") + 
+  geom_edge_link(aes(edge_alpha = 0.8)) +
+  geom_node_point(color = "lightblue", size = 5) +
+  geom_node_text(aes(label = name), vjust = 1.5, size = 4) +
+  theme_void()
+
+```

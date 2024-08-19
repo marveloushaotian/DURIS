@@ -27,8 +27,9 @@ def create_stacked_bar_chart(input_file, output_file, value_column):
 
     # Step 7: Define a custom distinct color palette
     num_colors = pivot_df.shape[1]
-    custom_colors = sns.color_palette('tab20', num_colors)  # Use the tab20 color palette for distinct colors
-
+    # custom_colors = sns.color_palette('tab20', num_colors)  # Use the tab20 color palette for distinct colors
+    custom_colors = ["#c0dbe6","#2b526f","#4a9ba7","#a3cbd6","#c0cfbd","#9bb88a","#7b9b64","#d0cab7","#c6a4c5","#9b7baa","#7a7aaf","#434d91","#5284a2","#82b4c8","#9d795d","#d1b49a","#fff08c","#e1834e","#cd6073","#ffc7c9"]
+    
     # Step 8: Split the data by Contig_Group and order each group
     contig_groups = filtered_df['Contig_Group'].unique()
     fig, axes = plt.subplots(1, len(contig_groups), figsize=(2.5 * len(contig_groups), 8), sharey=False)

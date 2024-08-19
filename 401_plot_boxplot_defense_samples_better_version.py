@@ -19,10 +19,12 @@ def create_boxplot(input_file, output_file, final_result_column):
     logging.info("Creating combined grouping column")
     df['Group'] = df['Contig_Group'] + '_' + df['Location_BAF']
     
+    sns.set_palette(["#BF7EA2"])
+    
     # Step 3: Create the boxplot
     plt.figure(figsize=(10, 8))
     ax = sns.boxplot(x='Group', y=final_result_column, data=df, showfliers=False)
-    sns.stripplot(x='Group', y=final_result_column, data=df, color='red', alpha=0.5, jitter=True)
+    sns.stripplot(x='Group', y=final_result_column, data=df, color='#1E2040', alpha=0.5, jitter=True)
     
     # Step 4: Customize plot
     ax.set(xlabel=None)  # Remove the x-axis label

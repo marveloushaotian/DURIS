@@ -1,0 +1,321 @@
+---
+title: "Circulize"
+author: "Haotian Zheng"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(circlize)
+```
+
+```{r}
+load("Collect/08_Circular/Final/chromatin_transition.RData")
+```
+
+```{r}
+all_states = rownames(mat)
+n_states = nrow(mat)
+
+rownames(mat) = paste0("R_", seq_len(n_states))
+colnames(mat) = paste0("C_", seq_len(n_states))
+
+# dimnames(meth_mat_1) = dimnames(mat)
+# dimnames(meth_mat_2) = dimnames(mat)
+
+state_col = c("TssA" = "#E41A1C",    "TssAFlnk" = "#E41A1C",
+              "TxFlnk" = "#E41A1C",  "Tx" = "#E41A1C",
+              "TxWk" = "#E41A1C",    "EnhG" = "#E41A1C",
+              "Enh" = "#E41A1C",     "ZNF/Rpts" = "#E41A1C",
+              "Het" = "#377EB8",     "TssBiv" = "#377EB8",
+              "BivFlnk" = "#377EB8", "EnhBiv" = "#377EB8",
+              "ReprPC" = "#377EB8",  "ReprPCWk" = "#377EB8",
+              "Quies" = "black")
+
+# one for rows and one for columns
+state_col2 = c(state_col, state_col)
+names(state_col2) = c(rownames(mat), colnames(mat))
+
+# colmat = rep(state_col2[rownames(mat)], n_states)
+# colmat = rgb(t(col2rgb(colmat)), maxColorValue = 255)
+# 
+# qati = quantile(mat, 0.7)
+# colmat[mat > qati] = paste0(colmat[mat > qati], "A0")
+# colmat[mat <= qati] = paste0(colmat[mat <= qati], "20")
+# dim(colmat) = dim(mat)
+
+
+circos.par(cell.padding = c(0, 0, 0, 0), points.overflow.warning = FALSE)
+# col = colmat,
+cdm_res = chordDiagram(mat, grid.col = state_col2,
+    directional = TRUE, annotationTrack = "grid", 
+    big.gap = 10, small.gap = 1,
+    preAllocateTracks = list(track.height = 0.1),
+    link.target.prop = FALSE)
+
+# 添加标签
+circos.trackPlotRegion(track.index = 1, panel.fun = function(x, y) {
+    sector.index = get.cell.meta.data("sector.index")
+    xlim = get.cell.meta.data("xlim")
+    ylim = get.cell.meta.data("ylim")
+    circos.text(mean(xlim), ylim[1] + 0.1, sector.index, 
+                facing = "clockwise", niceFacing = TRUE, adj = c(0, 0.5))
+}, bg.border = NA)
+
+# 关闭circos图形
+circos.clear()
+
+```
+
+```{r}
+dkb <- read.table("Collect/08_Circular/Final/DK_Before_Filter_final.txt")
+dkb_matrix <- as.matrix(dkb)
+all_states = rownames(dkb_matrix)
+n_states = nrow(dkb_matrix)
+
+color_row = c("SoF" = "#c0dbe6",    "Wad" = "#4a9ba7",
+              "PD6" = "#c0cfbd",  "RM" = "#7b9b64",
+              "AbiE" = "#c6a4c5",    "AbiD" = "#7a7aaf",
+              "Cas" = "#5284a2",     "Zor" = "#9d795d",
+              "CBA" = "#e1834e",     "Sep" = "#ffc7c9")
+
+color_col = c("Pha" = "#BFAB6F",    "Plas" = "#0F7BA6",
+              "P" = "#BF7EA2",  "Bact" = "#BF7EA2",
+              "Baci" = "#BF7EA2",    "C" = "#BF7EA2",
+              "A" = "#BF7EA2",     "M" = "#BF7EA2",
+              "V" = "#BF7EA2",     "T" = "#BF7EA2")
+
+state_col2 = c(color_row, color_col)
+names(state_col2) = c(rownames(dkb_matrix), colnames(dkb_matrix))
+
+circos.par(cell.padding = c(0, 0, 0, 0), points.overflow.warning = FALSE)
+
+cdm_res = chordDiagram(dkb_matrix, grid.col = state_col2,
+    directional = TRUE, annotationTrack = "grid", 
+    big.gap = 10, small.gap = 1,
+    preAllocateTracks = list(track.height = 0.1),
+    link.target.prop = FALSE)
+
+circos.trackPlotRegion(track.index = 1, panel.fun = function(x, y) {
+    sector.index = get.cell.meta.data("sector.index")
+    xlim = get.cell.meta.data("xlim")
+    ylim = get.cell.meta.data("ylim")
+    circos.text(mean(xlim), ylim[1] + 0.1, sector.index, 
+                facing = "clockwise", niceFacing = TRUE, adj = c(0, 0.5))
+}, bg.border = NA)
+
+# 关闭circos图形
+circos.clear()
+
+```
+
+```{r}
+# 加载必要的库
+library(circlize)
+
+# 读取数据
+dkb <- read.table("Collect/08_Circular/Final/UK_Before_Filter_final.txt")
+dkb_matrix <- as.matrix(dkb)
+all_states = rownames(dkb_matrix)
+n_states = nrow(dkb_matrix)
+
+# 设置颜色
+color_row = c("SoF" = "#c0dbe6", "Wad" = "#4a9ba7",
+              "PD6" = "#c0cfbd", "RM" = "#7b9b64",
+              "AbiE" = "#c6a4c5", "AbiD" = "#7a7aaf",
+              "Cas" = "#5284a2", "Zor" = "#9d795d",
+              "CBA" = "#e1834e", "Sep" = "#ffc7c9")
+color_col = c("Pha" = "#BFAB6F", "Plas" = "#0F7BA6",
+              "P" = "#BF7EA2", "Bact" = "#BF7EA2",
+              "Baci" = "#BF7EA2", "C" = "#BF7EA2",
+              "A" = "#BF7EA2", "M" = "#BF7EA2",
+              "V" = "#BF7EA2", "T" = "#BF7EA2")
+state_col2 = c(color_row, color_col)
+names(state_col2) = c(rownames(dkb_matrix), colnames(dkb_matrix))
+
+# 函数来创建 Chord Diagram
+create_chord_diagram <- function() {
+  circos.clear()
+  circos.par(cell.padding = c(0, 0, 0, 0), points.overflow.warning = FALSE)
+  cdm_res = chordDiagram(dkb_matrix, grid.col = state_col2,
+      directional = TRUE, annotationTrack = "grid", 
+      big.gap = 10, small.gap = 1,
+      preAllocateTracks = list(track.height = 0.1),
+      link.target.prop = FALSE)
+  circos.trackPlotRegion(track.index = 1, panel.fun = function(x, y) {
+      sector.index = get.cell.meta.data("sector.index")
+      xlim = get.cell.meta.data("xlim")
+      ylim = get.cell.meta.data("ylim")
+      circos.text(mean(xlim), ylim[1] + 0.1, sector.index, 
+                  facing = "clockwise", niceFacing = TRUE, adj = c(0, 0.5))
+  }, bg.border = NA)
+}
+
+# 保存为 PNG
+png("chord_diagram.png", width = 800, height = 800, res = 100)
+create_chord_diagram()
+dev.off()
+
+# 保存为 PDF
+pdf("chord_diagram.pdf", width = 10, height = 10)
+create_chord_diagram()
+dev.off()
+
+print("Chord diagram has been saved as 'chord_diagram.png' and 'chord_diagram.pdf'.")
+```
+
+
+
+
+```{r}
+dkb <- read.table("Collect/08_Circular/Final/DK_After_Filter_final.txt")
+
+all_states = rownames(dkb)
+n_states = nrow(dkb)
+
+color_col = c("Pha" = "#BFAB6F",    "Plas" = "#0F7BA6",
+              "P" = "#BF7EA2",  "Bact" = "#BF7EA2",
+              "Baci" = "#BF7EA2",    "C" = "#BF7EA2",
+              "A" = "#BF7EA2",     "M" = "#BF7EA2",
+              "V" = "#BF7EA2",     "T" = "#BF7EA2")
+color_row = c("SoF" = "#c0dbe6",    "Wad" = "#4a9ba7",
+              "PD6" = "#c0cfbd",  "RM" = "#7b9b64",
+              "AbiE" = "#c6a4c5",    "AbiD" = "#7a7aaf",
+              "Cas" = "#5284a2",     "Zor" = "#9d795d",
+              "CBA" = "#e1834e",     "Sep" = "#ffc7c9")
+state_col2 = c(color_row, color_col)
+names(state_col2) = c(rownames(dkb), colnames(dkb))
+
+colmat = rep(state_col2[rownames(dkb)], n_states)
+colmat = rgb(t(col2rgb(colmat)), maxColorValue = 255)
+
+circos.par(cell.padding = c(0, 0, 0, 0), points.overflow.warning = FALSE)
+
+cdm_res = chordDiagram(dkb, grid.col = state_col2,
+    directional = TRUE, annotationTrack = "grid", 
+    big.gap = 10, small.gap = 1,
+    preAllocateTracks = list(track.height = 0.1),
+    link.target.prop = FALSE)
+
+```
+
+
+```{r}
+# 读取数据
+dkb <- read.table("Collect/08_Circular/Final/DK_Before_Filter_final.txt")
+
+# 设置顺序
+order <- c("Pha", "Plas", "P", "Bact", "Baci", "C", "A", "M", "V", "T", "SoF", "Wad", "PD6", "RM", "AbiE", "AbiD", "Cas", "Zor", "CBA", "Sep")
+
+# 设置自定义连接颜色
+link_colors <- c("#c0dbe6","#2b526f","#4a9ba7","#a3cbd6","#c0cfbd","#9bb88a","#7b9b64","#d0cab7","#c6a4c5","#9b7baa","#7a7aaf","#434d91","#5284a2","#82b4c8","#9d795d","#d1b49a","#fff08c","#e1834e","#cd6073","#ffc7c9","#969696","#d1d9e2")
+
+# 为扇形设置一个统一的颜色（例如灰色）
+grid.col <- setNames(rep("grey", length(order)), order)
+
+# 清除之前的circos设置
+circos.clear()
+
+# 设置全局参数
+circos.par(track.margin = c(0, 0.01), cell.padding = c(0, 0, 0, 0))
+
+# 创建一个函数来为每个连接分配颜色
+get_link_color <- function(from, to) {
+  # 使用 from 和 to 的组合来选择颜色
+  color_index <- (which(order == from) + which(order == to)) %% length(link_colors) + 1
+  return(link_colors[color_index])
+}
+
+# 绘制和自定义和弦图
+chordDiagram(
+  dkb, 
+  col = link_colors,
+  order = order,
+  grid.col = grid.col, 
+  annotationTrack = "grid",
+  preAllocateTracks = 1,  # 预分配1个轨道用于自定义标签
+  annotationTrackHeight = c(0.05, 0.01),  # 调整网格和间隔的高度
+  link.sort = TRUE,
+  link.decreasing = FALSE,
+  link.visible =  link_thresh,
+  link.col = get_link_color  # 使用自定义函数设置连接颜色
+)
+
+# 重置circos参数
+circos.clear()
+```
+
+
+```{r}
+# 加载必要的库
+library(circlize)
+library(gridExtra)
+library(grid)
+
+# 函数：创建和弦图
+create_chord_diagram <- function(data, order, color_map, title) {
+  # 为扇形设置颜色
+  grid.col <- color_map[order]
+  
+  # 创建和弦图
+  chordDiagram(
+    data, 
+    order = order,
+    grid.col = grid.col, 
+    annotationTrack = "grid",
+    preAllocateTracks = 1,
+    annotationTrackHeight = c(0.05, 0.01),
+    link.sort = TRUE,
+    link.decreasing = FALSE,
+    link.col = color_map[order[data$from]]  # 使用 from 类别的颜色
+  )
+  
+  # 添加标题
+  title(title, line = -1)
+}
+
+# 读取两个数据文件
+dkb1 <- read.table("Collect/08_Circular/Final/DK_Before_Filter_final.txt")
+dkb2 <- read.table("Collect/08_Circular/Final/DK_After_Filter_final.txt")
+
+# 设置顺序
+order <- c("Pha", "Plas", "P", "Bact", "Baci", "C", "A", "M", "V", "T", "SoF", "Wad", "PD6", "RM", "AbiE", "AbiD", "Cas", "Zor", "CBA", "Sep")
+
+# 设置颜色映射
+color_map <- setNames(
+  c("#c0dbe6","#2b526f","#4a9ba7","#a3cbd6","#c0cfbd","#9bb88a","#7b9b64","#d0cab7","#c6a4c5","#9b7baa","#7a7aaf","#434d91","#5284a2","#82b4c8","#9d795d","#d1b49a","#fff08c","#e1834e","#cd6073","#ffc7c9"),
+  order
+)
+
+# 创建图例的函数
+create_legend <- function(color_map) {
+  plot.new()
+  legend("center", legend = names(color_map), 
+         fill = color_map, 
+         ncol = 4, 
+         cex = 0.8,
+         title = "Categories")
+}
+
+# 设置绘图布局
+layout(matrix(c(1,2,3,3), 2, 2, byrow = TRUE), heights = c(4, 1))
+
+# 绘制第一个和弦图
+par(mar = c(2, 2, 2, 2))
+create_chord_diagram(dkb1, order, color_map, "Chord Diagram 1")
+
+# 清除circos设置
+circos.clear()
+
+# 绘制第二个和弦图
+par(mar = c(2, 2, 2, 2))
+create_chord_diagram(dkb2, order, color_map, "Chord Diagram 2")
+
+# 重置circos参数
+circos.clear()
+
+# 添加共享的图例
+create_legend(color_map)
+```
+

@@ -66,7 +66,7 @@ if __name__ == "__main__":
     parser.add_argument("-mc", "--main_col", required=True, help="Column name in the main file to match.")
     parser.add_argument("-a", "--aux_file", required=True, help="Path to the auxiliary file (tab-separated).")
     parser.add_argument("-ac", "--aux_col", required=True, help="Column name in the auxiliary file to match.")
-    parser.add_argument("-c", "--aux_cols_to_add", required=True, nargs='+', help="Column names or indices in the auxiliary file to add to the main file. For indices, use numbers starting from 0.")
+    parser.add_argument("-c", "--aux_cols_to_add", required=True, nargs='+', help="Column names or indices in the auxiliary file to add to the main file. For indices, use numbers starting from 0, such as $(seq -s ' ' 1 40)")
     parser.add_argument("-o", "--output_file", required=True, help="Path to save the output merged file (tab-separated).")
 
     # Parse arguments

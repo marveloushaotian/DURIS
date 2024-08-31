@@ -2,21 +2,14 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 import argparse
-import logging
-from tqdm import tqdm
 from scipy.stats import f_oneway
 import numpy as np
 
-# Set up logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
-
 def create_boxplot(input_file, output_file, final_result_column):
     # Step 1: Load the data
-    logging.info(f"Loading data from {input_file}")
     df = pd.read_csv(input_file, sep='\t')
     
     # Step 2: Create a new column for combined grouping
-    logging.info("Creating combined grouping column")
     df['Group'] = df['Contig_Group'] + '_' + df['Location_BAF']
     
     sns.set_palette(["#BF7EA2"])
@@ -52,7 +45,6 @@ def create_boxplot(input_file, output_file, final_result_column):
     
     # Step 5: Save and show plot
     plt.tight_layout()
-    logging.info(f"Saving plot to {output_file}")
     plt.savefig(output_file, format='pdf')
     plt.show()
 
@@ -70,4 +62,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-

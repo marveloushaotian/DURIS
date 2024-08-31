@@ -1,14 +1,10 @@
 import pandas as pd
 import argparse
-import logging
 from tqdm import tqdm
-
-# Configure logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 def split_defense_info(input_file, output_file):
     # Load the data
-    logging.info(f'Loading data from {input_file}')
+    print(f'Loading data from {input_file}')
     df = pd.read_csv(input_file, sep='\t')
 
     # Ensure Defense_Type and Defense_Subtype columns are strings and fill NaN values with empty strings
@@ -16,7 +12,7 @@ def split_defense_info(input_file, output_file):
     df['Defense_Subtype'] = df['Defense_Subtype'].astype(str).fillna('')
 
     # Expand rows based on comma-separated values in 'Defense_Type' and 'Defense_Subtype'
-    logging.info('Splitting rows based on comma-separated values in Defense_Type and Defense_Subtype')
+    print('Splitting rows based on comma-separated values in Defense_Type and Defense_Subtype')
     expanded_rows = []
     for index, row in tqdm(df.iterrows(), total=df.shape[0]):
         defense_types = row['Defense_Type'].split(',')
@@ -33,9 +29,9 @@ def split_defense_info(input_file, output_file):
     expanded_df = pd.DataFrame(expanded_rows)
 
     # Save the expanded DataFrame to a new file
-    logging.info(f'Saving expanded data to {output_file}')
+    print(f'Saving expanded data to {output_file}')
     expanded_df.to_csv(output_file, sep='\t', index=False)
-    logging.info('Done!')
+    print('Done!')
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Split All_defense_info.txt by Defense_Type and Defense_Subtype columns.')
@@ -45,4 +41,3 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     split_defense_info(args.input, args.output)
-

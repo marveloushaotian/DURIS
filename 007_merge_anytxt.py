@@ -1,10 +1,6 @@
 import pandas as pd
 import argparse
 import sys
-import logging
-
-# Set up logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 def parse_columns(column_input, df):
     """Parse the column input, which can be column names or column indices."""
@@ -23,16 +19,16 @@ def merge_files(main_file, main_col, aux_file, aux_col, aux_cols_to_add, output_
         main_df = pd.read_csv(main_file, sep='\t')
         aux_df = pd.read_csv(aux_file, sep='\t')
     except Exception as e:
-        logging.error(f"Error reading files: {e}")
+        print(f"Error reading files: {e}")
         sys.exit(1)
     
     # Check if the columns exist
     if main_col not in main_df.columns:
-        logging.error(f"Main column '{main_col}' not found in main file.")
+        print(f"Main column '{main_col}' not found in main file.")
         sys.exit(1)
     
     if aux_col not in aux_df.columns:
-        logging.error(f"Auxiliary column '{aux_col}' not found in auxiliary file.")
+        print(f"Auxiliary column '{aux_col}' not found in auxiliary file.")
         sys.exit(1)
     
     # Parse the auxiliary columns to add
@@ -40,7 +36,7 @@ def merge_files(main_file, main_col, aux_file, aux_col, aux_cols_to_add, output_
     
     missing_cols = [col for col in aux_cols_to_add_parsed if col not in aux_df.columns]
     if missing_cols:
-        logging.error(f"Columns {missing_cols} not found in auxiliary file.")
+        print(f"Columns {missing_cols} not found in auxiliary file.")
         sys.exit(1)
     
     # Merge the files
@@ -53,9 +49,9 @@ def merge_files(main_file, main_col, aux_file, aux_col, aux_cols_to_add, output_
     # Save the result to a new file
     try:
         merged_df.to_csv(output_file, sep='\t', index=False)
-        logging.info(f"Successfully saved the merged file to {output_file}")
+        print(f"Successfully saved the merged file to {output_file}")
     except Exception as e:
-        logging.error(f"Error saving the merged file: {e}")
+        print(f"Error saving the merged file: {e}")
         sys.exit(1)
 
 if __name__ == "__main__":
@@ -74,4 +70,3 @@ if __name__ == "__main__":
 
     # Call the merge function
     merge_files(args.main_file, args.main_col, args.aux_file, args.aux_col, args.aux_cols_to_add, args.output_file)
-

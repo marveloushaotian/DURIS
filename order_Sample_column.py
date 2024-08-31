@@ -1,25 +1,36 @@
 import pandas as pd
 import argparse
+from tqdm import tqdm
 
 def sort_samples(input_file, output_file, sample_order):
-    # 读取数据
+    # Read the data
     df = pd.read_csv(input_file, delimiter="\t")
 
-    # 将数据框按照新的样本顺序排序
-    df['Sample'] = pd.Categorical(df['Sample'], categories=sample_order, ordered=True)
-    df_sorted = df.sort_values('Sample')
+    # Identify Sample_ columns
+    sample_columns = [col for col in df.columns if col.startswith("Sample_")]
+    other_columns = [col for col in df.columns if not col.startswith("Sample_")]
 
-    # 保存到新文件
+    # Sort Sample_ columns according to the new sample order
+    sorted_sample_columns = [col for col in sample_order if col in sample_columns]
+    
+    # Add any Sample_ columns that are not in the predefined order to the end
+    sorted_sample_columns.extend([col for col in sample_columns if col not in sample_order])
+
+    # Reorder columns
+    new_column_order = other_columns + sorted_sample_columns
+    df_sorted = df[new_column_order]
+
+    # Save to new file
     df_sorted.to_csv(output_file, sep="\t", index=False)
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Sort samples in a txt file according to a given order.")
+    parser = argparse.ArgumentParser(description="Sort Sample_ columns in a txt file according to a given order.")
     parser.add_argument("-i", "--input", required=True, help="Path to the input txt file.")
     parser.add_argument("-o", "--output", required=True, help="Path to the output txt file.")
     
     args = parser.parse_args()
 
-    # 定义新的样本顺序
+    # Define the new sample order
     new_order = [
         "Sample_01", "Sample_02", "Sample_03", "Sample_04", "Sample_06",
         "Sample_07", "Sample_08", "Sample_09", "Sample_11", "Sample_12",
@@ -39,6 +50,5 @@ if __name__ == "__main__":
         "Sample_70", "Sample_74", "Sample_78"
     ]
 
-    # 调用函数进行排序
+    # Call the function to sort samples
     sort_samples(args.input, args.output, new_order)
-

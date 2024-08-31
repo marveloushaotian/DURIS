@@ -2,13 +2,6 @@ import argparse
 import subprocess
 from pathlib import Path
 from tqdm import tqdm
-import logging
-import time
-import os
-
-# Setup logging with unique filename
-log_filename = f'bam_coverage_analysis_{time.strftime("%Y%m%d_%H%M%S")}_{os.getpid()}.log'
-logging.basicConfig(filename=log_filename, level=logging.INFO, format='%(asctime)s:%(levelname)s:%(message)s')
 
 def coverage_analysis(input_dir, output_dir):
     input_dir = Path(input_dir)
@@ -20,7 +13,7 @@ def coverage_analysis(input_dir, output_dir):
         output_file = output_dir / (bam_file.stem + '_coverage_info.txt.gz')
         cmd = ['msamtools', 'coverage', '-z', '--summary', '-o', str(output_file), str(bam_file)]
         subprocess.run(cmd, check=True)
-        logging.info(f'Generated coverage information for {bam_file} into {output_file}')
+        print(f'Generated coverage information for {bam_file} into {output_file}')
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Calculate coverage information for BAM files using msamtools.',
@@ -31,7 +24,6 @@ if __name__ == '__main__':
 
     try:
         coverage_analysis(args.input, args.output)
-        logging.info("Coverage analysis completed successfully.")
+        print("Coverage analysis completed successfully.")
     except Exception as e:
-        logging.error(f"Error during coverage analysis: {e}")
-
+        print(f"Error during coverage analysis: {e}")

@@ -1,10 +1,5 @@
 import argparse
-import logging
 from tqdm import tqdm
-
-# Setup logging
-logging.basicConfig(filename='update_abundance_profile.log', level=logging.INFO,
-                    format='%(asctime)s:%(levelname)s:%(message)s')
 
 def parse_defense_info(file_path):
     """
@@ -43,7 +38,6 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    logging.info('Script started.')
+    print('Script started.')
     update_abundance_profile(args.input_defense_info, args.input_abundance_profile, args.output)
-    logging.info('Script finished.')
-
+    print('Script finished.')

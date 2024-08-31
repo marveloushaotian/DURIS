@@ -1,9 +1,9 @@
-import sys
+import argparse
 from math import ceil
 
 def split_fasta(fasta_file, num_files):
     """
-    Split a FASTA file into a specified number of smaller FASTA files.
+    Split a FASTA file into a specified number of smaller files.
 
     Parameters:
     fasta_file (str): Path to the input FASTA file.
@@ -23,12 +23,12 @@ def split_fasta(fasta_file, num_files):
                 output_file.write(f">{sequence}")
 
 if __name__ == "__main__":
-    if len(sys.argv) != 3:
-        print("Usage: python split_fasta.py <fasta_file> <num_files>")
-        sys.exit(1)
+    parser = argparse.ArgumentParser(description='Split a FASTA file into a specified number of smaller files.',
+                                     epilog='Example: %(prog)s -i input.fasta -n 3')
+    parser.add_argument('-i', type=str, required=True, help='Path to the input FASTA file')
+    parser.add_argument('-n', type=int, required=True, help='Number of smaller FASTA files to create')
+    args = parser.parse_args()
 
-    fasta_file = sys.argv[1]
-    num_files = int(sys.argv[2])
+    split_fasta(args.i, args.n)
 
-    split_fasta(fasta_file, num_files)
-
+    print(f"Successfully split {args.i} into {args.n} files.")

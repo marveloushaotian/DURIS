@@ -2,14 +2,8 @@ import argparse
 import subprocess
 from pathlib import Path
 from tqdm import tqdm
-import logging
-import time
 import os
 from concurrent.futures import ThreadPoolExecutor, as_completed
-
-# Setup logging with unique filename
-log_filename = f'bam_filtering_{time.strftime("%Y%m%d_%H%M%S")}_{os.getpid()}.log'
-logging.basicConfig(filename=log_filename, level=logging.INFO, format='%(asctime)s:%(levelname)s:%(message)s')
 
 def filter_bam_file(bam_file, output_dir):
     output_file = output_dir / (bam_file.stem + '_filter.bam')
@@ -17,9 +11,9 @@ def filter_bam_file(bam_file, output_dir):
     cmd_string = " ".join(cmd)
     try:
         subprocess.run(cmd_string, shell=True, check=True)
-        logging.info(f'Filtered {bam_file} to {output_file}')
+        print(f'Filtered {bam_file} to {output_file}')
     except subprocess.CalledProcessError as e:
-        logging.error(f"Error filtering {bam_file}: {e}")
+        print(f"Error filtering {bam_file}: {e}")
 
 def main(input_dir, output_dir, num_workers):
     input_dir = Path(input_dir)
@@ -34,7 +28,7 @@ def main(input_dir, output_dir, num_workers):
             try:
                 future.result()
             except Exception as e:
-                logging.error(f"Error processing {bam_file}: {e}")
+                print(f"Error processing {bam_file}: {e}")
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Filter sorted BAM files using msamtools.',
@@ -46,7 +40,6 @@ if __name__ == '__main__':
 
     try:
         main(args.input, args.output, args.workers)
-        logging.info("Filtering completed successfully.")
+        print("Filtering completed successfully.")
     except Exception as e:
-        logging.error(f"Error during filtering: {e}")
-
+        print(f"Error during filtering: {e}")

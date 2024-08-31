@@ -2,22 +2,16 @@ import argparse
 import subprocess
 from pathlib import Path
 from tqdm import tqdm
-import logging
-import time
 import os
 from concurrent.futures import ThreadPoolExecutor, as_completed
-
-# Setup logging with unique filename
-log_filename = f'bam_sorting_{time.strftime("%Y%m%d_%H%M%S")}_{os.getpid()}.log'
-logging.basicConfig(filename=log_filename, level=logging.INFO, format='%(asctime)s:%(levelname)s:%(message)s')
 
 def sort_bam_file(bam_file, output_dir):
     output_file = output_dir / (bam_file.stem + '_sort.bam')
     try:
         subprocess.run(['samtools', 'sort', '-n', '-@', '8', bam_file, '-o', output_file], check=True)
-        logging.info(f'Sorted {bam_file} to {output_file}')
+        print(f'Sorted {bam_file} to {output_file}')
     except subprocess.CalledProcessError as e:
-        logging.error(f"Error sorting {bam_file}: {e}")
+        print(f"Error sorting {bam_file}: {e}")
 
 def main(input_dir, output_dir, num_workers):
     input_dir = Path(input_dir)
@@ -32,7 +26,7 @@ def main(input_dir, output_dir, num_workers):
             try:
                 future.result()
             except Exception as e:
-                logging.error(f"Error processing {bam_file}: {e}")
+                print(f"Error processing {bam_file}: {e}")
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Sort BAM files using samtools.',
@@ -44,7 +38,6 @@ if __name__ == '__main__':
 
     try:
         main(args.input, args.output, args.workers)
-        logging.info("Sorting completed successfully.")
+        print("Sorting completed successfully.")
     except Exception as e:
-        logging.error(f"Error during sorting: {e}")
-
+        print(f"Error during sorting: {e}")

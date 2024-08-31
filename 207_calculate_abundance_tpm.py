@@ -2,13 +2,6 @@ import argparse
 import subprocess
 from pathlib import Path
 from tqdm import tqdm
-import logging
-import time
-import os
-
-# Setup logging with unique filename
-log_filename = f'msamtools_profile_{time.strftime("%Y%m%d_%H%M%S")}_{os.getpid()}.log'
-logging.basicConfig(filename=log_filename, level=logging.INFO, format='%(asctime)s:%(levelname)s:%(message)s')
 
 def profile_bam_files(input_dir, output_dir):
     input_dir = Path(input_dir)
@@ -20,7 +13,7 @@ def profile_bam_files(input_dir, output_dir):
         output_file = output_dir / (bam_file.stem + '_profile_rb.txt')
         cmd = ['msamtools', 'profile', '--multi=all', '--unit=tpm', '--label=' + bam_file.name, '-o', str(output_file), str(bam_file)]
         subprocess.run(cmd, check=True)
-        logging.info(f'Generated profile for {bam_file} into {output_file}')
+        print(f'Generated profile for {bam_file} into {output_file}')
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Generate profiles from filtered BAM files using msamtools.',
@@ -31,7 +24,6 @@ if __name__ == '__main__':
 
     try:
         profile_bam_files(args.input, args.output)
-        logging.info("Profile generation completed successfully.")
+        print("Profile generation completed successfully.")
     except Exception as e:
-        logging.error(f"Error during profile generation: {e}")
-
+        print(f"Error during profile generation: {e}")

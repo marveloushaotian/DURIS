@@ -119,7 +119,6 @@ lapply(files, process_file)
 
 ```
 
-
 # NMDS in country difference
 
 ```{r}

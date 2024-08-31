@@ -2,13 +2,6 @@ import argparse
 import subprocess
 from pathlib import Path
 from tqdm import tqdm
-import logging
-import time
-import os
-
-# Setup logging with unique filename
-log_filename = f'sam_to_bam_conversion_{time.strftime("%Y%m%d_%H%M%S")}_{os.getpid()}.log'
-logging.basicConfig(filename=log_filename, level=logging.INFO, format='%(asctime)s:%(levelname)s:%(message)s')
 
 def convert_sam_to_bam(input_dir, output_dir):
     input_dir = Path(input_dir)
@@ -19,7 +12,7 @@ def convert_sam_to_bam(input_dir, output_dir):
     for sam_file in tqdm(sam_files, desc='Converting SAM to BAM'):
         output_file = output_dir / sam_file.with_suffix('.bam').name
         subprocess.run(['samtools', 'view', '-Sb', sam_file, '-o', output_file], check=True)
-        logging.info(f'Converted {sam_file} to {output_file}')
+        print(f'Converted {sam_file} to {output_file}')
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Convert SAM files to BAM format using samtools.',
@@ -30,7 +23,6 @@ if __name__ == '__main__':
 
     try:
         convert_sam_to_bam(args.input, args.output)
-        logging.info("Conversion completed successfully.")
+        print("Conversion completed successfully.")
     except Exception as e:
-        logging.error(f"Error during conversion: {e}")
-
+        print(f"Error during conversion: {e}")

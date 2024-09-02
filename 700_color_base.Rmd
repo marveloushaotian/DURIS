@@ -10,11 +10,7 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 ```{r}
-
 "#ffffff"
-
-
-
 # heatmap
 
 c("#a673a3", "#a775a4", "#aa7aa7", "#af82ac", "#b58db3", "#be9bbc", "#c6a9c6", "#ceb7ce", "#d5c3d5", "#dcd0dd", "#e3dce4", "#e8e7e9", "#eaeeea", "#e9f1e6", "", "#e1f0d6", "#dbeecb", "#d6ecc1", "#d1eab6", "#cbe8aa", "#c5e59d", "#bfe292", "#b9df89", "#b3dc82", "#add97d", "#a6d579", "#a0d277", "#99ce76", "#92ca77", "#8bc67b", "#83c280", "#7cbd85", "#75b989", "#6eb58c", "#67b090", "#60ac93", "#59a795", "#54a296", "#509d95", "#4d9793", "#4a9190", "#478c8c", "#458689", "#428085", "#407981", "#3d737d", "#3b6e79", "#3a6a77", "#396876", "#396775"
@@ -104,25 +100,5 @@ ggplot(data, aes(x = Category, y = Value, fill = Subcategory)) +
   scale_fill_manual(values = colors) +
   theme_minimal() +
   labs(title = "Stacked Bar Chart with 22 Subcategories per Category", x = "Category", y = "Value")
-
-```
-```{r}
-library(igraph)
-library(ggraph)
-library(tidyverse)
-
-# 创建一个示例网络
-edges <- data.frame(
-  from = c("A", "A", "B", "C", "D", "E", "E", "E"),
-  to = c("B", "C", "D", "E", "F", "F", "G", "H")
-)
-
-graph <- graph_from_data_frame(edges, directed = FALSE)
-
-ggraph(graph, layout = "fr") + 
-  geom_edge_link(aes(edge_alpha = 0.8)) +
-  geom_node_point(color = "lightblue", size = 5) +
-  geom_node_text(aes(label = name), vjust = 1.5, size = 4) +
-  theme_void()
 
 ```

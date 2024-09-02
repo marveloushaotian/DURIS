@@ -2,18 +2,9 @@ import argparse
 from math import ceil
 
 def split_fasta(fasta_file, num_files):
-    """
-    Split a FASTA file into a specified number of smaller files.
-
-    Parameters:
-    fasta_file (str): Path to the input FASTA file.
-    num_files (int): Number of smaller FASTA files to create.
-    """
-    # Read the original FASTA file
     with open(fasta_file, 'r') as file:
-        sequences = file.read().split('>')[1:]  # Split sequences and remove the first empty string
+        sequences = file.read().split('>')[1:]
 
-    # Calculate the number of sequences per file
     sequences_per_file = ceil(len(sequences) / num_files)
 
     for i in range(num_files):

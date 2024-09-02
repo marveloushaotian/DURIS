@@ -46,7 +46,7 @@ def sunburst(nodes, total=np.pi * 2, offset=0, level=0, ax=None, text_rotation=T
     if level == 0:
         ax.set_axis_off()
 
-# 定义颜色映射，为每个路径分配独一无二的颜色
+# Define color mapping, assigning unique colors for each path
 color_map = {
     "All Contigs": "#ffffff",
     "All Contigs-Metagenome": "#e3dce4",
@@ -71,7 +71,7 @@ color_map = {
     "All Contigs-Plasmidome-Linear G-None": "#92ca77"
 }
 
-# 数据结构
+# Data structure
 data = [("All Contigs", 287424, [
     ("Metagenome", 206581, [
         ("Circular", 3361, [
@@ -103,15 +103,14 @@ data = [("All Contigs", 287424, [
     ])
 ])]
 
-# 创建图表
+# Create the chart
 plt.figure(figsize=(12, 12))
 sunburst(data, color_map=color_map)
 plt.tight_layout()
 
-# 保存图表为 PDF 文件
-plt.savefig('sunburst_chart_with_custom_colors.pdf', dpi=300, bbox_inches='tight')
-print("旭日图已保存为 sunburst_chart_with_custom_colors.pdf")
+# Save the chart as a PDF file
+plt.savefig('sunburst_chart_defense.pdf', dpi=300, bbox_inches='tight')
+print("Sunburst chart has been saved as sunburst_chart_defense.pdf")
 
-# 显示图表（用于调试）
+# Display the chart (for debugging)
 plt.show()
-

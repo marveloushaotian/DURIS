@@ -9,7 +9,7 @@
 For raw sequencing data, use python and shell. For statistic analysis and ploting, use R.
 
 ## Project Background
-
+![Diagram of a representative urban water system](https://github.com/user-attachments/assets/b7951960-fbf7-4f81-ad8c-71931fd9fd80)
 
 ## Data Collection
 

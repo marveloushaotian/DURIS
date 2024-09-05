@@ -32,13 +32,13 @@ def process_input(input_path, output_dir):
     """
     if input_path.is_file():
         if input_path.suffix.lower() == '.csv':
-            output_file = output_dir / (input_path.stem + '.txt')
+            output_file = output_dir / (input_path.stem + '.tsv')
             convert_csv_to_tsv(str(input_path), str(output_file))
             logging.info(f"Converted {input_path} to {output_file}")
     elif input_path.is_dir():
         csv_files = list(input_path.glob('*.csv'))
         for file in tqdm(csv_files, desc="Converting files"):
-            output_file = output_dir / (file.stem + '.txt')
+            output_file = output_dir / (file.stem + '.tsv')
             convert_csv_to_tsv(str(file), str(output_file))
             logging.info(f"Converted {file} to {output_file}")
         

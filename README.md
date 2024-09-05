@@ -10,7 +10,6 @@ For raw sequencing data, use python and shell. For statistic analysis and plotin
 
 ## Project Background
 
-![](assets/20240831_173322_Diagram_of a representative urban water system.png)
 
 ## Data Collection
 
@@ -20,12 +19,7 @@ For raw sequencing data, use python and shell. For statistic analysis and plotin
 |   |   |   |
 |   |   |   |
 
-
 ## Union Name
-
-
-
-
 
 ## Scripts Explain
 

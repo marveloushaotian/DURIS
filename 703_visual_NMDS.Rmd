@@ -6,131 +6,45 @@ output: html_document
 ---
 
 ```{r setup, include=FALSE}
+rm(list = ls())
 knitr::opts_chunk$set(echo = TRUE)
-```
-
-# NMDS in before and after filter
-
-```{r}
 # Load necessary libraries
 library(vegan)
 library(ggplot2)
-
-# Set the directory path
-directory_path <- "Collect/01_Defense/01_TPM_Abundance_without_PDC/"
-
-# Get all files in the directory
-files <- list.files(directory_path, full.names = TRUE)
-
-# Define the column patterns for Before_Filter and After_Filter
-before_filter_columns <- c("Sample_01", "Sample_02", "Sample_03", "Sample_04", "Sample_06",
-                           "Sample_07", "Sample_08", "Sample_09", "Sample_11", "Sample_12",
-                           "Sample_13", "Sample_14", "Sample_16", "Sample_17", "Sample_18",
-                           "Sample_20", "Sample_21", "Sample_22", "Sample_24", "Sample_25",
-                           "Sample_26", "Sample_28", "Sample_29", "Sample_30", "Sample_32",
-                           "Sample_33", "Sample_34", "Sample_36", "Sample_37", "Sample_38",
-                           "Sample_40", "Sample_41", "Sample_42", "Sample_43", "Sample_45",
-                           "Sample_46", "Sample_47", "Sample_48", "Sample_50", "Sample_51",
-                           "Sample_52", "Sample_53", "Sample_55", "Sample_56", "Sample_57",
-                           "Sample_59", "Sample_60", "Sample_61", "Sample_63", "Sample_64",
-                           "Sample_65", "Sample_67", "Sample_68", "Sample_69", "Sample_71",
-                           "Sample_72", "Sample_73", "Sample_75", "Sample_76", "Sample_77")
-
-after_filter_columns <- c("Sample_05", "Sample_10", "Sample_15", "Sample_19", "Sample_23",
-                          "Sample_27", "Sample_31", "Sample_35", "Sample_39", "Sample_44",
-                          "Sample_49", "Sample_54", "Sample_58", "Sample_62", "Sample_66",
-                          "Sample_70", "Sample_74", "Sample_78")
-
-# Function to process each file
-process_file <- function(file_path) {
-  # Load the data
-  data <- read.table(file_path, header = TRUE, sep = "\t", row.names = 1)
-  
-  # Remove columns with all zeros
-  data <- data[, colSums(data != 0) > 0]
-  
-  # Separate the groups based on predefined columns
-  group1 <- data[, colnames(data) %in% before_filter_columns]
-  group2 <- data[, colnames(data) %in% after_filter_columns]
-  
-  # Rename columns for clarity
-  colnames(group1) <- paste("Before_Filter", seq_len(ncol(group1)), sep = "_")
-  colnames(group2) <- paste("After_Filter", seq_len(ncol(group2)), sep = "_")
-  
-  # Combine groups for analysis
-  combined_data <- cbind(group1, group2)
-  
-  # Transpose the data to have samples as rows
-  combined_data_t <- t(combined_data)
-  
-  # Perform NMDS
-  nmds <- metaMDS(combined_data_t, distance = "bray", k = 2, trymax = 100)
-  
-  # Extract NMDS scores (site scores)
-  nmds_scores <- as.data.frame(scores(nmds, display = "sites"))
-  
-  # Add group information
-  nmds_scores$group <- rep(c("Before_Filter", "After_Filter"), c(ncol(group1), ncol(group2)))
-  
-  # Calculate centroids and confidence intervals
-  centroids <- aggregate(cbind(NMDS1, NMDS2) ~ group, data = nmds_scores, FUN = mean)
-  conf_intervals <- data.frame()
-  for (g in unique(nmds_scores$group)) {
-    group_data <- nmds_scores[nmds_scores$group == g, 1:2]
-    cov_matrix <- cov(group_data)
-    mean_values <- colMeans(group_data)
-    ellipse_points <- veganCovEllipse(cov_matrix, mean_values, 0.95)
-    ellipse_points$group <- g
-    conf_intervals <- rbind(conf_intervals, ellipse_points)
-  }
-  
-  # Perform ANOSIM
-  group_factor <- factor(rep(c("Before_Filter", "After_Filter"), c(ncol(group1), ncol(group2))))
-  anosim_result <- anosim(combined_data_t, group_factor, distance = "bray")
-  
-  # Create annotation text for ANOSIM results
-  anosim_text <- paste("ANOSIM R:", round(anosim_result$statistic, 3), "\np-value:", format(anosim_result$signif, scientific = TRUE))
-  
-  # Plot NMDS with confidence ellipses
-  nmds_plot <- ggplot(nmds_scores, aes(x = NMDS1, y = NMDS2, color = group)) +
-    geom_point(size = 3) +
-    geom_path(data = conf_intervals, aes(x = NMDS1, y = NMDS2, group = group, color = group), linetype = 2) +
-    scale_color_manual(values = c("Before_Filter" = "#BF7EA2", "After_Filter" = "#0F7BA6")) +  # 自定义颜色
-    theme_minimal() +
-    labs(title = "NMDS Plot", x = "NMDS1", y = "NMDS2") +
-    annotate("text", x = min(nmds_scores$NMDS1), y = max(nmds_scores$NMDS2), label = anosim_text, hjust = 0, vjust = 1, size = 5)
-  
-  # Save NMDS plot as PDF
-  plot_filename <- paste0("NMDS_plot_", basename(file_path), ".pdf")
-  ggsave(plot_filename, plot = nmds_plot, device = "pdf")
-}
-
-# Function to generate ellipse points for confidence intervals
-veganCovEllipse <- function(cov, center, scale) {
-  library(MASS)
-  angles <- seq(0, 2 * pi, length.out = 100)
-  unit_circle <- cbind(cos(angles), sin(angles))
-  ellipse <- t(center + scale * t(unit_circle %*% chol(cov)))
-  return(as.data.frame(ellipse))
-}
-
-# Process all files
-lapply(files, process_file)
-
+library(lattice)
+library(permute)
 ```
 
-# NMDS in country difference
+# NMDS in Different Locations and Countries and Seasons.
 
 ```{r}
-# Load necessary libraries
-library(vegan)
-library(ggplot2)
-
 # Set the directory path
-directory_path <- "Collect/01_Defense/01_TPM_Abundance_without_PDC/"
+directory_path <- "Collect/01_Defense/03_Defense_TPM_Abundance_Matrix/Inuse/"
 
 # Get all files in the directory
-files <- list.files(directory_path, full.names = TRUE)
+files <- list.files(directory_path, pattern = "\\.csv$", full.names = TRUE)
+
+# Define the column patterns for HP, RS, MS, and BTP groups
+hp_columns <- c("Sample_01", "Sample_02", "Sample_06", "Sample_07", "Sample_11",
+                "Sample_12", "Sample_40", "Sample_41", "Sample_45", "Sample_46",
+                "Sample_50", "Sample_51", "Sample_28", "Sample_32", "Sample_36",
+                "Sample_67", "Sample_71", "Sample_75", "Sample_16", "Sample_20",
+                "Sample_24", "Sample_55", "Sample_59", "Sample_63")
+
+rs_columns <- c("Sample_03", "Sample_08", "Sample_13", "Sample_42", "Sample_47",
+                "Sample_52", "Sample_29", "Sample_33", "Sample_37", "Sample_68",
+                "Sample_72", "Sample_76", "Sample_17", "Sample_21", "Sample_25",
+                "Sample_56", "Sample_60", "Sample_64")
+
+ms_columns <- c("Sample_04", "Sample_09", "Sample_14", "Sample_43", "Sample_48",
+                "Sample_53", "Sample_30", "Sample_34", "Sample_38", "Sample_69",
+                "Sample_73", "Sample_77", "Sample_18", "Sample_22", "Sample_26",
+                "Sample_57", "Sample_61", "Sample_65")
+
+btp_columns <- c("Sample_05", "Sample_10", "Sample_15", "Sample_44", "Sample_49",
+                 "Sample_54", "Sample_31", "Sample_35", "Sample_39", "Sample_70",
+                 "Sample_74", "Sample_78", "Sample_19", "Sample_23", "Sample_27",
+                 "Sample_58", "Sample_62", "Sample_66")
 
 # Define the column patterns for DK, SP, and UK groups
 dk_columns <- c("Sample_01", "Sample_02", "Sample_03", "Sample_04", "Sample_06",
@@ -152,26 +66,39 @@ uk_columns <- c("Sample_16", "Sample_17", "Sample_18", "Sample_20", "Sample_21",
                 "Sample_63", "Sample_64", "Sample_65", "Sample_19", "Sample_23",
                 "Sample_27", "Sample_58", "Sample_62", "Sample_66")
 
+# Define summer and winter samples
+summer_samples <- c("Sample_58", "Sample_62", "Sample_66", "Sample_44", "Sample_49", "Sample_54", 
+                    "Sample_70", "Sample_74", "Sample_78", "Sample_43", "Sample_48", "Sample_53", 
+                    "Sample_69", "Sample_73", "Sample_77", "Sample_57", "Sample_61", "Sample_65", 
+                    "Sample_40", "Sample_41", "Sample_45", "Sample_46", "Sample_50", "Sample_51", 
+                    "Sample_67", "Sample_71", "Sample_75", "Sample_55", "Sample_59", "Sample_63", 
+                    "Sample_42", "Sample_47", "Sample_52", "Sample_68", "Sample_72", "Sample_76", 
+                    "Sample_56", "Sample_60", "Sample_64")
+
+winter_samples <- c("Sample_19", "Sample_23", "Sample_27", "Sample_05", "Sample_10", "Sample_15", 
+                    "Sample_31", "Sample_35", "Sample_39", "Sample_04", "Sample_09", "Sample_14", 
+                    "Sample_30", "Sample_34", "Sample_38", "Sample_18", "Sample_22", "Sample_26", 
+                    "Sample_01", "Sample_02", "Sample_06", "Sample_07", "Sample_11", "Sample_12", 
+                    "Sample_28", "Sample_32", "Sample_36", "Sample_16", "Sample_20", "Sample_24", 
+                    "Sample_03", "Sample_08", "Sample_13", "Sample_29", "Sample_33", "Sample_37", 
+                    "Sample_17", "Sample_21", "Sample_25")
+
 # Function to process each file
 process_file <- function(file_path) {
   # Load the data
-  data <- read.table(file_path, header = TRUE, sep = "\t", row.names = 1)
+  data <- read.csv(file_path, header = TRUE, row.names = 1)
   
   # Remove columns with all zeros
   data <- data[, colSums(data != 0) > 0]
   
   # Separate the groups based on predefined columns
-  group_dk <- data[, colnames(data) %in% dk_columns]
-  group_sp <- data[, colnames(data) %in% sp_columns]
-  group_uk <- data[, colnames(data) %in% uk_columns]
-  
-  # Rename columns for clarity
-  colnames(group_dk) <- paste("DK", seq_len(ncol(group_dk)), sep = "_")
-  colnames(group_sp) <- paste("SP", seq_len(ncol(group_sp)), sep = "_")
-  colnames(group_uk) <- paste("UK", seq_len(ncol(group_uk)), sep = "_")
+  group_hp <- data[, colnames(data) %in% hp_columns]
+  group_rs <- data[, colnames(data) %in% rs_columns]
+  group_ms <- data[, colnames(data) %in% ms_columns]
+  group_btp <- data[, colnames(data) %in% btp_columns]
   
   # Combine groups for analysis
-  combined_data <- cbind(group_dk, group_sp, group_uk)
+  combined_data <- cbind(group_hp, group_rs, group_ms, group_btp)
   
   # Transpose the data to have samples as rows
   combined_data_t <- t(combined_data)
@@ -183,39 +110,57 @@ process_file <- function(file_path) {
   nmds_scores <- as.data.frame(scores(nmds, display = "sites"))
   
   # Add group information
-  nmds_scores$group <- rep(c("DK", "SP", "UK"), c(ncol(group_dk), ncol(group_sp), ncol(group_uk)))
+  nmds_scores$group <- rep(c("HP", "RS", "MS", "BTP"), 
+                           c(ncol(group_hp), ncol(group_rs), ncol(group_ms), ncol(group_btp)))
   
-  # Calculate centroids and confidence intervals
-  centroids <- aggregate(cbind(NMDS1, NMDS2) ~ group, data = nmds_scores, FUN = mean)
-  conf_intervals <- data.frame()
+  # Add country information
+  nmds_scores$country <- rep("", nrow(nmds_scores))
+  nmds_scores$country[rownames(nmds_scores) %in% dk_columns] <- "DK"
+  nmds_scores$country[rownames(nmds_scores) %in% sp_columns] <- "SP"
+  nmds_scores$country[rownames(nmds_scores) %in% uk_columns] <- "UK"
+  
+  # Add season information
+  nmds_scores$season <- ifelse(rownames(nmds_scores) %in% summer_samples, "Summer", "Winter")
+  
+  # Calculate confidence ellipses
+  ellipse_list <- list()
   for (g in unique(nmds_scores$group)) {
-    group_data <- nmds_scores[nmds_scores$group == g, 1:2]
-    cov_matrix <- cov(group_data)
-    mean_values <- colMeans(group_data)
-    ellipse_points <- veganCovEllipse(cov_matrix, mean_values, 0.95)
-    ellipse_points$group <- g
-    conf_intervals <- rbind(conf_intervals, ellipse_points)
+    group_data <- nmds_scores[nmds_scores$group == g, c("NMDS1", "NMDS2")]
+    if (nrow(group_data) > 2) {  # Ensure there are enough points to calculate ellipse
+      ell <- data.frame(veganCovEllipse(cov(group_data), center = colMeans(group_data), scale = 0.95))
+      ell$group <- g
+      ellipse_list[[g]] <- ell
+    }
   }
+  conf_intervals <- do.call(rbind, ellipse_list)
   
   # Perform ANOSIM
-  group_factor <- factor(rep(c("DK", "SP", "UK"), c(ncol(group_dk), ncol(group_sp), ncol(group_uk))))
+  group_factor <- factor(nmds_scores$group)
   anosim_result <- anosim(combined_data_t, group_factor, distance = "bray")
   
   # Create annotation text for ANOSIM results
   anosim_text <- paste("ANOSIM R:", round(anosim_result$statistic, 3), "\np-value:", format(anosim_result$signif, scientific = TRUE))
   
-  # Plot NMDS with confidence ellipses
-  nmds_plot <- ggplot(nmds_scores, aes(x = NMDS1, y = NMDS2, color = group)) +
-    geom_point(size = 3) +
-    geom_path(data = conf_intervals, aes(x = NMDS1, y = NMDS2, group = group, color = group), linetype = 2) +
-    scale_color_manual(values = c("DK" = "#BF7EA2", "SP" = "#0F7BA6", "UK" = "#e1834e")) +  # Custom colors
+  # Plot NMDS
+  nmds_plot <- ggplot() +
+    # Add points with different transparencies for seasons
+    geom_point(data = nmds_scores, aes(x = NMDS1, y = NMDS2, color = group, shape = country, alpha = season), size = 3) +
+    # Add confidence ellipses
+    geom_path(data = conf_intervals, aes(x = NMDS1, y = NMDS2, color = group, group = group), linetype = 2) +
+    scale_color_manual(values = c("HP" = "#BF7EA2", "RS" = "#0F7BA6", "MS" = "#FFA500", "BTP" = "#32CD32"), name = "Location") +
+    scale_shape_manual(values = c("DK" = 16, "SP" = 17, "UK" = 18), name = "Country") +
+    scale_alpha_manual(values = c("Summer" = 1, "Winter" = 0.5), name = "Season") +
     theme_minimal() +
     labs(title = "NMDS Plot", x = "NMDS1", y = "NMDS2") +
-    annotate("text", x = min(nmds_scores$NMDS1), y = max(nmds_scores$NMDS2), label = anosim_text, hjust = 0, vjust = 1, size = 5)
+    annotate("text", x = min(nmds_scores$NMDS1), y = max(nmds_scores$NMDS2), 
+             label = anosim_text, hjust = 0, vjust = 1, size = 5)
   
   # Save NMDS plot as PDF
-  plot_filename <- paste0("NMDS_plot_", basename(file_path), ".pdf")
-  ggsave(plot_filename, plot = nmds_plot, device = "pdf")
+  plot_filename <- paste0("NMDS_plot_", tools::file_path_sans_ext(basename(file_path)), ".pdf")
+  ggsave(plot_filename, plot = nmds_plot, device = "pdf", width = 10, height = 8)
+  
+  # Print a message to confirm the plot has been saved
+  cat("NMDS plot saved as:", plot_filename, "\n")
 }
 
 # Function to generate ellipse points for confidence intervals
@@ -224,7 +169,180 @@ veganCovEllipse <- function(cov, center, scale) {
   angles <- seq(0, 2 * pi, length.out = 100)
   unit_circle <- cbind(cos(angles), sin(angles))
   ellipse <- t(center + scale * t(unit_circle %*% chol(cov)))
-  return(as.data.frame(ellipse))
+  return(data.frame(NMDS1 = ellipse[,1], NMDS2 = ellipse[,2]))
+}
+
+# Process all files
+lapply(files, process_file)
+```
+
+# Add sample names with the points.
+
+```{r}
+# Load necessary libraries
+library(vegan)
+library(ggplot2)
+library(lattice)
+library(permute)
+library(ggrepel)  # New library for non-overlapping text labels
+
+# Set the directory path
+directory_path <- "Collect/01_Defense/03_Defense_TPM_Abundance_Matrix/Inuse/"
+
+# Get all files in the directory
+files <- list.files(directory_path, pattern = "\\.csv$", full.names = TRUE)
+
+# Define the column patterns for HP, RS, MS, and BTP groups
+hp_columns <- c("Sample_01", "Sample_02", "Sample_06", "Sample_07", "Sample_11",
+                "Sample_12", "Sample_40", "Sample_41", "Sample_45", "Sample_46",
+                "Sample_50", "Sample_51", "Sample_28", "Sample_32", "Sample_36",
+                "Sample_67", "Sampl  e_71", "Sample_75", "Sample_16", "Sample_20",
+                "Sample_24", "Sample_55", "Sample_59", "Sample_63")
+
+rs_columns <- c("Sample_03", "Sample_08", "Sample_13", "Sample_42", "Sample_47",
+                "Sample_52", "Sample_29", "Sample_33", "Sample_37", "Sample_68",
+                "Sample_72", "Sample_76", "Sample_17", "Sample_21", "Sample_25",
+                "Sample_56", "Sample_60", "Sample_64")
+
+ms_columns <- c("Sample_04", "Sample_09", "Sample_14", "Sample_43", "Sample_48",
+                "Sample_53", "Sample_30", "Sample_34", "Sample_38", "Sample_69",
+                "Sample_73", "Sample_77", "Sample_18", "Sample_22", "Sample_26",
+                "Sample_57", "Sample_61", "Sample_65")
+
+btp_columns <- c("Sample_05", "Sample_10", "Sample_15", "Sample_44", "Sample_49",
+                 "Sample_54", "Sample_31", "Sample_35", "Sample_39", "Sample_70",
+                 "Sample_74", "Sample_78", "Sample_19", "Sample_23", "Sample_27",
+                 "Sample_58", "Sample_62", "Sample_66")
+
+# Define the column patterns for DK, SP, and UK groups
+dk_columns <- c("Sample_01", "Sample_02", "Sample_03", "Sample_04", "Sample_06",
+                "Sample_07", "Sample_08", "Sample_09", "Sample_11", "Sample_12",
+                "Sample_13", "Sample_14", "Sample_40", "Sample_41", "Sample_42",
+                "Sample_43", "Sample_45", "Sample_46", "Sample_47", "Sample_48",
+                "Sample_50", "Sample_51", "Sample_52", "Sample_53", "Sample_05",
+                "Sample_10", "Sample_15", "Sample_44", "Sample_49", "Sample_54")
+
+sp_columns <- c("Sample_28", "Sample_29", "Sample_30", "Sample_32", "Sample_33",
+                "Sample_34", "Sample_36", "Sample_37", "Sample_38", "Sample_67",
+                "Sample_68", "Sample_69", "Sample_71", "Sample_72", "Sample_73",
+                "Sample_75", "Sample_76", "Sample_77", "Sample_31", "Sample_35",
+                "Sample_39", "Sample_70", "Sample_74", "Sample_78")
+
+uk_columns <- c("Sample_16", "Sample_17", "Sample_18", "Sample_20", "Sample_21",
+                "Sample_22", "Sample_24", "Sample_25", "Sample_26", "Sample_55",
+                "Sample_56", "Sample_57", "Sample_59", "Sample_60", "Sample_61",
+                "Sample_63", "Sample_64", "Sample_65", "Sample_19", "Sample_23",
+                "Sample_27", "Sample_58", "Sample_62", "Sample_66")
+
+# Define summer and winter samples
+summer_samples <- c("Sample_58", "Sample_62", "Sample_66", "Sample_44", "Sample_49", "Sample_54", 
+                    "Sample_70", "Sample_74", "Sample_78", "Sample_43", "Sample_48", "Sample_53", 
+                    "Sample_69", "Sample_73", "Sample_77", "Sample_57", "Sample_61", "Sample_65", 
+                    "Sample_40", "Sample_41", "Sample_45", "Sample_46", "Sample_50", "Sample_51", 
+                    "Sample_67", "Sample_71", "Sample_75", "Sample_55", "Sample_59", "Sample_63", 
+                    "Sample_42", "Sample_47", "Sample_52", "Sample_68", "Sample_72", "Sample_76", 
+                    "Sample_56", "Sample_60", "Sample_64")
+
+winter_samples <- c("Sample_19", "Sample_23", "Sample_27", "Sample_05", "Sample_10", "Sample_15", 
+                    "Sample_31", "Sample_35", "Sample_39", "Sample_04", "Sample_09", "Sample_14", 
+                    "Sample_30", "Sample_34", "Sample_38", "Sample_18", "Sample_22", "Sample_26", 
+                    "Sample_01", "Sample_02", "Sample_06", "Sample_07", "Sample_11", "Sample_12", 
+                    "Sample_28", "Sample_32", "Sample_36", "Sample_16", "Sample_20", "Sample_24", 
+                    "Sample_03", "Sample_08", "Sample_13", "Sample_29", "Sample_33", "Sample_37", 
+                    "Sample_17", "Sample_21", "Sample_25")
+
+# Function to process each file
+process_file <- function(file_path) {
+  # Load the data
+  data <- read.csv(file_path, header = TRUE, row.names = 1)
+  
+  # Remove columns with all zeros
+  data <- data[, colSums(data != 0) > 0]
+  
+  # Separate the groups based on predefined columns
+  group_hp <- data[, colnames(data) %in% hp_columns]
+  group_rs <- data[, colnames(data) %in% rs_columns]
+  group_ms <- data[, colnames(data) %in% ms_columns]
+  group_btp <- data[, colnames(data) %in% btp_columns]
+  
+  # Combine groups for analysis
+  combined_data <- cbind(group_hp, group_rs, group_ms, group_btp)
+  
+  # Transpose the data to have samples as rows
+  combined_data_t <- t(combined_data)
+  
+  # Perform NMDS
+  nmds <- metaMDS(combined_data_t, distance = "bray", k = 2, trymax = 100)
+  
+  # Extract NMDS scores (site scores)
+  nmds_scores <- as.data.frame(scores(nmds, display = "sites"))
+  
+  # Add group information
+  nmds_scores$group <- rep(c("HP", "RS", "MS", "BTP"), 
+                           c(ncol(group_hp), ncol(group_rs), ncol(group_ms), ncol(group_btp)))
+  
+  # Add country information
+  nmds_scores$country <- rep("", nrow(nmds_scores))
+  nmds_scores$country[rownames(nmds_scores) %in% dk_columns] <- "DK"
+  nmds_scores$country[rownames(nmds_scores) %in% sp_columns] <- "SP"
+  nmds_scores$country[rownames(nmds_scores) %in% uk_columns] <- "UK"
+  
+  # Add season information
+  nmds_scores$season <- ifelse(rownames(nmds_scores) %in% summer_samples, "Summer", "Winter")
+  
+  # Add sample names
+  nmds_scores$sample <- rownames(nmds_scores)
+  
+  # Calculate confidence ellipses
+  ellipse_list <- list()
+  for (g in unique(nmds_scores$group)) {
+    group_data <- nmds_scores[nmds_scores$group == g, c("NMDS1", "NMDS2")]
+    if (nrow(group_data) > 2) {  # Ensure there are enough points to calculate ellipse
+      ell <- data.frame(veganCovEllipse(cov(group_data), center = colMeans(group_data), scale = 0.95))
+      ell$group <- g
+      ellipse_list[[g]] <- ell
+    }
+  }
+  conf_intervals <- do.call(rbind, ellipse_list)
+  
+  # Perform ANOSIM
+  group_factor <- factor(nmds_scores$group)
+  anosim_result <- anosim(combined_data_t, group_factor, distance = "bray")
+  
+  # Create annotation text for ANOSIM results
+  anosim_text <- paste("ANOSIM R:", round(anosim_result$statistic, 3), "\np-value:", format(anosim_result$signif, scientific = TRUE))
+  
+  # Plot NMDS
+  nmds_plot <- ggplot() +
+    # Add points with different transparencies for seasons
+    geom_point(data = nmds_scores, aes(x = NMDS1, y = NMDS2, color = group, shape = country, alpha = season), size = 3) +
+    # Add non-overlapping sample labels
+    geom_text_repel(data = nmds_scores, aes(x = NMDS1, y = NMDS2, label = sample), size = 3, box.padding = 0.5, point.padding = 0.5) +
+    # Add confidence ellipses
+    geom_path(data = conf_intervals, aes(x = NMDS1, y = NMDS2, color = group, group = group), linetype = 2) +
+    scale_color_manual(values = c("HP" = "#BF7EA2", "RS" = "#0F7BA6", "MS" = "#FFA500", "BTP" = "#32CD32"), name = "Location") +
+    scale_shape_manual(values = c("DK" = 16, "SP" = 17, "UK" = 18), name = "Country") +
+    scale_alpha_manual(values = c("Summer" = 1, "Winter" = 0.5), name = "Season") +
+    theme_minimal() +
+    labs(title = "NMDS Plot", x = "NMDS1", y = "NMDS2") +
+    annotate("text", x = min(nmds_scores$NMDS1), y = max(nmds_scores$NMDS2), 
+             label = anosim_text, hjust = 0, vjust = 1, size = 5)
+  
+  # Save NMDS plot as PDF
+  plot_filename <- paste0("NMDS_plot_", tools::file_path_sans_ext(basename(file_path)), ".pdf")
+  ggsave(plot_filename, plot = nmds_plot, device = "pdf", width = 12, height = 10)  # Increased size for better readability
+  
+  # Print a message to confirm the plot has been saved
+  cat("NMDS plot saved as:", plot_filename, "\n")
+}
+
+# Function to generate ellipse points for confidence intervals
+veganCovEllipse <- function(cov, center, scale) {
+  library(MASS)
+  angles <- seq(0, 2 * pi, length.out = 100)
+  unit_circle <- cbind(cos(angles), sin(angles))
+  ellipse <- t(center + scale * t(unit_circle %*% chol(cov)))
+  return(data.frame(NMDS1 = ellipse[,1], NMDS2 = ellipse[,2]))
 }
 
 # Process all files
@@ -234,79 +352,147 @@ lapply(files, process_file)
 # NMDS - taxonomy - before filter and after filter - with defense and without defense
 
 ```{r}
+rm(list = ls())
 # Load required libraries
+library(dplyr)
+library(tidyr)
+library(readr)
 library(vegan)
 library(ggplot2)
-library(dplyr)
+library(tidyverse)
+library(ggrepel)  # For text labels that don't overlap
 
-# Set file paths
-input_file <- "Collect/All_contigs_info_without_PDC.txt"  # 替换为您的输入文件路径
-output_file <- "output_nmds_plot.png"  # 替换为您想保存输出图片的路径
+# Step 1: Read the input CSV file
+input_file <- "Results/05_Taxonomy/Tables/all_contigs_with_taxonomy_for_NMDS.csv"
+data_A <- read_csv(input_file)
+print(head(data_A))
 
-# Read the data
-data <- read.delim(input_file, sep="\t", header=TRUE)
+# Step 2: Create table B (Defense_Type != "No")
+data_B <- data_A %>% filter(Defense_Type != "No")
+print(head(data_B))
 
-# Function to process data
-process_data <- function(df, filter_defense = FALSE) {
-  # Filter out 'No' values in Kaiju_Phylum
-  df <- df[df$Kaiju_Phylum != "No", ]
-  
-  if (filter_defense) {
-    df <- df[!is.na(df$Defense_Type) & df$Defense_Type != "No", ]
-  }
-  
-  # Create a wide table
-  wide_table <- table(df$Location_BAF, df$Country, df$Kaiju_Phylum)
-  wide_df <- as.data.frame.matrix(wide_table)
-  
-  return(wide_df)
-}
+# Step 3: Define the order of Kaiju_Phylum
+phylum_order <- c(
+  "Pseudomonadota", "Bacteroidota", "Bacillota", "Campylobacterota",
+  "Actinomycetota", "Myxococcota", "Verrucomicrobiota", "Thermodesulfobacteriota",
+  "Fusobacteriota", "Acidobacteriota", "Chloroflexota", "Gemmatimonadota",
+  "Candidatus_Saccharibacteria", "Planctomycetota", "Cyanobacteriota",
+  "Bdellovibrionota", "Nitrospirota", "Spirochaetota", "Euryarchaeota",
+  "Deinococcota", "Fibrobacterota", "Synergistota", "Mycoplasmatota",
+  "Candidatus_Thermoplasmatota", "Balneolota", "Rhodothermota", "Ignavibacteriota",
+  "Chlamydiota", "Chlorobiota", "Thermotogota", "Kiritimatiellota",
+  "Lentisphaerota", "Armatimonadota", "Aquificota", "Thermomicrobiota",
+  "Candidatus_Binatota", "Deferribacterota", "Candidatus_Methylomirabilota",
+  "Candidatus_Tectomicrobia", "Candidatus_Deferrimicrobiota", "Candidatus_Kryptoniota",
+  "Calditrichota", "Elusimicrobiota", "Chrysiogenota", "Candidatus_Dormiibacterota",
+  "Nitrospinota", "Candidatus_Cloacimonadota", "Nitrososphaerota", "Thermoproteota",
+  "Abditibacteriota", "Vulcanimicrobiota", "Candidatus_Fervidibacterota",
+  "Thermosulfidibacterota", "Candidatus_Absconditabacteria", "Candidatus_Melainabacteria",
+  "Atribacterota", "Candidatus_Cryosericota", "Candidatus_Omnitrophota",
+  "Dictyoglomota", "Thermodesulfobiota", "Candidatus_Bipolaricaulota",
+  "Coprothermobacterota", "Candidatus_Lokiarchaeota", "Caldisericota",
+  "Candidatus_Borrarchaeota", "Candidatus_Micrarchaeota", "Candidatus_Korarchaeota",
+  "Candidatus_Culexarchaeota", "Candidatus_Hadarchaeota", "Candidatus_Bathyarchaeota",
+  "Candidatus_Nanohalarchaeota"
+)
 
-# Process all data
-all_data <- process_data(data)
+# Step 4: Process table A with "All_" prefix
+result_A <- data_A %>%
+  group_by(Sample, Kaiju_Phylum) %>%
+  summarise(Count = n(), .groups = "drop") %>%
+  pivot_wider(names_from = Sample, values_from = Count, values_fill = 0) %>%
+  right_join(tibble(Kaiju_Phylum = phylum_order), by = "Kaiju_Phylum") %>%
+  arrange(match(Kaiju_Phylum, phylum_order)) %>%
+  mutate(across(-Kaiju_Phylum, ~replace_na(., 0))) %>%
+  rename_with(~paste0("All_", .), -Kaiju_Phylum)
 
-# Process data with defense filter
-defense_data <- process_data(data, filter_defense = TRUE)
+print(head(result_A))
 
-# Merge the two datasets
-merged_data <- all_data + defense_data
+# Step 5: Process table B with "Defense_" prefix
+result_B <- data_B %>%
+  group_by(Sample, Kaiju_Phylum) %>%
+  summarise(Count = n(), .groups = "drop") %>%
+  pivot_wider(names_from = Sample, values_from = Count, values_fill = 0) %>%
+  right_join(tibble(Kaiju_Phylum = phylum_order), by = "Kaiju_Phylum") %>%
+  arrange(match(Kaiju_Phylum, phylum_order)) %>%
+  mutate(across(-Kaiju_Phylum, ~replace_na(., 0))) %>%
+  rename_with(~paste0("Defense_", .), -Kaiju_Phylum)
 
-# Perform NMDS
-nmds_result <- metaMDS(merged_data, distance = "bray", k = 2)
+print(head(result_B))
 
-# Extract NMDS coordinates
-nmds_coords <- as.data.frame(scores(nmds_result))
-nmds_coords$Location_BAF <- rownames(merged_data) %>% 
-  strsplit("\\.", fixed = TRUE) %>% 
-  sapply(`[`, 1)
-nmds_coords$Country <- rownames(merged_data) %>% 
-  strsplit("\\.", fixed = TRUE) %>% 
-  sapply(`[`, 2)
+# Step 6: Combine results horizontally
+combined_result <- result_A %>%
+  left_join(result_B, by = "Kaiju_Phylum")
 
-# Perform ANOSIM
-anosim_result <- anosim(merged_data, 
-                        grouping = paste(nmds_coords$Location_BAF, nmds_coords$Country, sep="_"), 
-                        distance = "bray", permutations = 999)
+print(head(combined_result))
 
-# Create NMDS plot
-p <- ggplot(nmds_coords, aes(x = NMDS1, y = NMDS2, color = Location_BAF, shape = Country)) +
+# Step 7: Read the group information
+group_file <- "Results/05_Taxonomy/Tables/taxonomy_nmds_group.csv"
+group_info <- read_csv(group_file)
+print(head(group_info))
+
+# Step 8: Prepare data for NMDS
+nmds_data <- combined_result %>%
+  column_to_rownames("Kaiju_Phylum") %>%  # 将Kaiju_Phylum设为行名
+  t() %>%  # 转置数据，使样本成为行，Phylum成为列
+  as.data.frame()
+
+print(dim(nmds_data))  # 打印维度，应该是 156 x 71
+print(head(nmds_data))
+
+# Step 9: Perform NMDS
+nmds_result <- metaMDS(nmds_data, distance = "bray")
+print(summary(nmds_result))
+
+nmds_result_site <- as.data.frame(scores(nmds_result)$sites)
+
+# Step 10: Extract NMDS coordinates
+nmds_coords <- as.data.frame(scores(nmds_result_site))
+nmds_coords$Sample <- rownames(nmds_coords)
+print(head(nmds_coords))
+
+# Step 11: Merge NMDS coordinates with group information
+plot_data <- left_join(nmds_coords, group_info, by = "Sample")
+print(head(plot_data))
+
+# Create the NMDS plot
+ggplot(plot_data, aes(x = NMDS1, y = NMDS2, color = Location, shape = Country, alpha = Season)) +
   geom_point(size = 3) +
   theme_minimal() +
-  labs(title = paste("NMDS Plot\nANOSIM R:", round(anosim_result$statistic, 3), 
-                     ", p-value:", round(anosim_result$signif, 3)),
-       x = "NMDS1", y = "NMDS2") +
-  scale_color_manual(values = c("BF" = "#1f77b4", "AF" = "#ff7f0e"))
+  labs(title = "NMDS Plot of Taxonomic Data",
+       x = "NMDS1",
+       y = "NMDS2") +
+  scale_color_brewer(palette = "Set1") +
+  scale_shape_manual(values = c(16, 17, 18)) +  # 16 for DK (dot), 17 for UK (triangle), 18 for SP (diamond)
+  scale_alpha_manual(values = c("WINTER" = 0.5, "SUMMER" = 1)) +
+  theme(legend.position = "right")
 
 # Save the plot
-ggsave(output_file, p, width = 10, height = 8, dpi = 300)
+ggsave("nmds_plot_multi_dimension.png", width = 12, height = 8, dpi = 300)
 
-# Save NMDS coordinates
-write.csv(nmds_coords, gsub("\\.png$", "_coordinates.csv", output_file), row.names = FALSE)
 
-cat("NMDS plot saved as", output_file, "\n")
-cat("NMDS coordinates saved as", gsub("\\.png$", "_coordinates.csv", output_file), "\n")
+# Create the NMDS plot
+p <- ggplot(plot_data, aes(x = NMDS1, y = NMDS2, color = Location, shape = Country, alpha = Season)) +
+  geom_point(size = 3) +
+  stat_ellipse(aes(group = Location), level = 0.95, type = "t", linetype = 2) +
+  theme_minimal() +
+  labs(title = "NMDS Plot of Taxonomic Data with Confidence Ellipses",
+       x = "NMDS1",
+       y = "NMDS2") +
+  scale_color_brewer(palette = "Set1") +
+  scale_shape_manual(values = c(16, 17, 18)) +  # 16 for DK (dot), 17 for UK (triangle), 18 for SP (diamond)
+  scale_alpha_manual(values = c("WINTER" = 0.5, "SUMMER" = 1)) +
+  theme(legend.position = "right")
 
-# Print ANOSIM results
-print(anosim_result)
+# Add centroid labels for each Location
+centroids <- plot_data %>%
+  group_by(Location) %>%
+  summarise(NMDS1 = mean(NMDS1), NMDS2 = mean(NMDS2))
+
+p <- p + geom_text_repel(plot_data = centroids, aes(x = NMDS1, y = NMDS2, label = Location), 
+                         color = "black", fontface = "bold", box.padding = 0.5, inherit.aes = FALSE)
+
+# Save the plot
+ggsave("nmds_plot_with_ellipses.png", plot = p, width = 12, height = 8, dpi = 300)
 ```
 

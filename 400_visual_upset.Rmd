@@ -16,485 +16,253 @@ library(ggplot2)
 
 # Country
 ```{r}
-# 读取数据并筛选 Defense_Unsure 列不为 "Yes" 的记录
-data <- read.delim("Collect/all_defense_info_single_full.txt", sep = "\t") %>%
-  filter(Defense_Unsure != "Yes")
+data <- read.csv("Collect/All_defense_info_sing.csv")
 
-# 使用 Country 作为分组列
 data <- data %>% mutate(Country_Group = Country)
 
-# 创建防御类型的二元矩阵
 binary_matrix <- data %>%
-  distinct(Country_Group, Defense_Type) %>%  # 保留唯一的 Country_Group 和 Defense_Type 组合
-  mutate(present = 1) %>%  # 标记存在的 Defense_Type
-  pivot_wider(names_from = Defense_Type, values_from = present, values_fill = 0)  # 转换为宽格式，填充缺失值为 0
+  distinct(Country_Group, Defense_Type) %>%
+  mutate(present = 1) %>%
+  pivot_wider(names_from = Defense_Type, values_from = present, values_fill = 0)
 
-# 将 Country_Group 设为行名
 binary_matrix <- binary_matrix %>% column_to_rownames("Country_Group")
 
-# 交换横纵坐标: 转置矩阵并确保转置后的结果是 data.frame
 binary_matrix <- as.data.frame(t(binary_matrix))
 
-# 确保列名和行名正确
 binary_matrix <- binary_matrix %>% rownames_to_column(var = "Defense_Type")
 
-# 对列进行排序（按字母顺序排序为例）
-custom_order <- colnames(binary_matrix)  # 获取所有列名
+custom_order <- colnames(binary_matrix)
 binary_matrix <- binary_matrix %>% select(all_of(custom_order))
 
-# # 设置保存路径和图像大小
-# pdf("upset_plot_country.pdf", width = 8, height = 6)  # 单位为英寸
-# 
-# # 绘制 Upset 图
-# upset(binary_matrix, 
-#       sets = colnames(binary_matrix)[-1],  # 除去第一列 "Defense_Type" 
-#       order.by = "freq",
-#       keep.order = TRUE,
-#       main.bar.color = "#BF7EA2",         # 设置主条形图的颜色
-#       sets.bar.color = "#0F7BA6")         # 设置集合条形图的颜色
-# 
-# # 关闭设备保存图像
-# dev.off()
+png("Results/02_DF_distribution/02_Upset_new/upset_plot_country.png", 
+    width = 5, height = 5, units = "in", res = 600)
 
-# 设置保存路径、图像大小和分辨率
-png("Results/01_df_num_distribution/Upset/upset_plot_country.png", 
-    width = 5, height = 5, units = "in", res = 600)  # 单位为英寸，分辨率为 300 DPI
-
-# 绘制 Upset 图，并添加标签
 upset(binary_matrix, 
-      sets = colnames(binary_matrix)[-1],  # 除去第一列 "Defense_Type" 
+      sets = colnames(binary_matrix)[-1],
       order.by = "freq", 
       keep.order = TRUE,
-      main.bar.color = "#BF7EA2",         # 设置主条形图的颜色
-      sets.bar.color = "#0F7BA6")        # 设置集合条形图的颜色
+      main.bar.color = "#BF7EA2",
+      sets.bar.color = "#0F7BA6")
 
-# 关闭设备保存图像
 dev.off()
 ```
 
-## LocationBAF
+## Location
 ```{r}
-# 读取数据并筛选 Defense_Unsure 列不为 "Yes" 的记录
-data <- read.delim("Collect/all_defense_info_single_full.txt", sep = "\t") %>%
-  filter(Defense_Unsure != "Yes")
+# Read data
+data <- read.csv("Collect/All_defense_info_sing.csv")
 
-# 使用 Location_BAF 作为分组列
-data <- data %>% mutate(Location_Group = Location_BAF)
+# Use Location as the grouping column
+data <- data %>% mutate(Location_Group = Location)
 
-# 创建防御类型的二元矩阵
+# Create binary matrix of defense types
 binary_matrix <- data %>%
-  distinct(Location_Group, Defense_Type) %>%  # 保留唯一的 Location_Group 和 Defense_Type 组合
-  mutate(present = 1) %>%  # 标记存在的 Defense_Type
-  pivot_wider(names_from = Defense_Type, values_from = present, values_fill = 0)  # 转换为宽格式，填充缺失值为 0
+  distinct(Location_Group, Defense_Type) %>%
+  mutate(present = 1) %>%
+  pivot_wider(names_from = Defense_Type, values_from = present, values_fill = 0)
 
-# 将 Location_Group 设为行名
+# Set Location_Group as row names
 binary_matrix <- binary_matrix %>% column_to_rownames("Location_Group")
 
-# 交换横纵坐标: 转置矩阵并确保转置后的结果是 data.frame
+# Transpose matrix and ensure result is a data frame
 binary_matrix <- as.data.frame(t(binary_matrix))
 
-# 确保列名和行名正确
+# Ensure column and row names are correct
 binary_matrix <- binary_matrix %>% rownames_to_column(var = "Defense_Type")
 
-# 对列进行排序（按字母顺序排序为例）
-custom_order <- c("Defense_Type", "After_Filter", "Before_Filter")
+# Sort columns
+custom_order <- colnames(binary_matrix)
 binary_matrix <- binary_matrix %>% select(all_of(custom_order))
 
-# 对列进行重命名（如有需要）
-binary_matrix <- binary_matrix %>%
-  rename(AF = After_Filter, BF = Before_Filter)  # 替换为实际列名和新列名
+# Save plot
+png("Results/02_DF_distribution/02_Upset_new/upset_plot_location.png", 
+    width = 5, height = 5, units = "in", res = 600)
 
-# # 设置保存路径和图像大小
-# pdf("Results/01_df_num_distribution/Upset/upset_plot_location_baf.pdf", width = 8, height = 6)  # 单位为英寸
-# 
-# # 绘制 Upset 图
-# upset(binary_matrix, 
-#       sets = colnames(binary_matrix)[-1],  # 除去第一列 "Defense_Type" 
-#       order.by = "freq", 
-#       keep.order = TRUE,
-#       main.bar.color = "#BF7EA2",         # 设置主条形图的颜色
-#       sets.bar.color = "#0F7BA6")         # 设置集合条形图的颜色
-# 
-# # 关闭设备保存图像
-# dev.off()
-
-# 设置保存路径、图像大小和分辨率
-png("Results/01_df_num_distribution/Upset/upset_plot_locationbaf.png", 
-    width = 5, height = 5, units = "in", res = 600)  # 单位为英寸，分辨率为 300 DPI
-
-# 绘制 Upset 图，并添加标签
+# Draw Upset plot
 upset(binary_matrix, 
-      sets = colnames(binary_matrix)[-1],  # 除去第一列 "Defense_Type" 
+      sets = colnames(binary_matrix)[-1],
       order.by = "freq", 
       keep.order = TRUE,
-      main.bar.color = "#BF7EA2",         # 设置主条形图的颜色
-      sets.bar.color = "#0F7BA6")        # 设置集合条形图的颜色
+      main.bar.color = "#BF7EA2",
+      sets.bar.color = "#0F7BA6")
 
-# 关闭设备保存图像
 dev.off()
 ```
 
 ## Genome Location
 ```{r}
-# 读取数据并筛选 Defense_Unsure 列不为 "Yes" 的记录
-data <- read.delim("Collect/all_defense_info_single_full.txt", sep = "\t") %>%
-  filter(Defense_Unsure != "Yes")
+data <- read.csv("Collect/All_defense_info_sing.csv")
 
-# 使用 Contig_Classification 作为分组列
 data <- data %>% mutate(Contig_Group = Contig_Classification)
 
-# 创建防御类型的二元矩阵
 binary_matrix <- data %>%
-  distinct(Contig_Group, Defense_Type) %>%  # 保留唯一的 Contig_Group 和 Defense_Type 组合
-  mutate(present = 1) %>%  # 标记存在的 Defense_Type
-  pivot_wider(names_from = Defense_Type, values_from = present, values_fill = 0)  # 转换为宽格式，填充缺失值为 0
+  distinct(Contig_Group, Defense_Type) %>%
+  mutate(present = 1) %>%
+  pivot_wider(names_from = Defense_Type, values_from = present, values_fill = 0)
 
-# 将 Contig_Group 设为行名
 binary_matrix <- binary_matrix %>% column_to_rownames("Contig_Group")
 
-# 交换横纵坐标: 转置矩阵并确保转置后的结果是 data.frame
 binary_matrix <- as.data.frame(t(binary_matrix))
 
-# 确保列名和行名正确
 binary_matrix <- binary_matrix %>% rownames_to_column(var = "Defense_Type")
 
-# 对列进行排序（按字母顺序排序为例）
-custom_order <- colnames(binary_matrix)  # 获取所有列名
+custom_order <- colnames(binary_matrix)
 binary_matrix <- binary_matrix %>% select(all_of(custom_order))
 
-# 对列进行重命名（如有需要） - 如果不需要重命名，这步可以跳过
-# binary_matrix <- binary_matrix %>%
-#   rename(UK_AF = UK_After_Filter, SP_AF = SP_After_Filter, DK_AF = DK_After_Filter, UK_BF = UK_Before_Filter, SP_BF = SP_Before_Filter, DK_BF = DK_Before_Filter)  # 替换为实际列名和新列名
+png("Results/02_DF_distribution/02_Upset_new/upset_plot_genome_location.png", 
+    width = 5, height = 5, units = "in", res = 600)
 
-# # 设置保存路径和图像大小
-# pdf("Results/01_df_num_distribution/Upset/upset_plot_genome_location.pdf", width = 4, height = 3)  # 单位为英寸
-# 
-# # 绘制 Upset 图
-# upset(binary_matrix, 
-#       sets = colnames(binary_matrix)[-1],  # 除去第一列 "Defense_Type" 
-#       order.by = "freq", 
-#       keep.order = TRUE,
-#       main.bar.color = "#BF7EA2",         # 设置主条形图的颜色
-#       sets.bar.color = "#0F7BA6")         # 设置集合条形图的颜色
-# 
-# # 关闭设备保存图像
-# dev.off()
-
-# 设置保存路径、图像大小和分辨率
-png("Results/01_df_num_distribution/Upset/upset_plot_genome_location.png", 
-    width = 5, height = 5, units = "in", res = 600)  # 单位为英寸，分辨率为 300 DPI
-
-# 绘制 Upset 图，并添加标签
 upset(binary_matrix, 
-      sets = colnames(binary_matrix)[-1],  # 除去第一列 "Defense_Type" 
+      sets = colnames(binary_matrix)[-1],
       order.by = "freq", 
       keep.order = TRUE,
-      main.bar.color = "#BF7EA2",         # 设置主条形图的颜色
-      sets.bar.color = "#0F7BA6")        # 设置集合条形图的颜色
+      main.bar.color = "#BF7EA2",
+      sets.bar.color = "#0F7BA6")
 
-# 关闭设备保存图像
 dev.off()
 ```
 
-## Country + Location BAF
+## Country + Location
 ```{r}
-# 读取数据并筛选 Defense_Unsure 列不为 "Yes" 的记录
-data <- read.delim("Collect/all_defense_info_single_full.txt", sep = "\t") %>%
-  filter(Defense_Unsure != "Yes")
+data <- read.csv("Collect/All_defense_info_sing.csv")
 
-# 创建 Country_Location 列
-data <- data %>% mutate(Country_Location = paste(Country, Location_BAF, sep = "_"))
+data <- data %>% mutate(Country_Location = paste(Country, Location, sep = "_"))
 
-# 创建防御类型的二元矩阵
 binary_matrix <- data %>%
-  distinct(Country_Location, Defense_Type) %>%  # 保留唯一的 Country_Location 和 Defense_Type 组合
-  mutate(present = 1) %>%  # 标记存在的 Defense_Type
-  pivot_wider(names_from = Defense_Type, values_from = present, values_fill = 0)  # 转换为宽格式，填充缺失值为 0
+  distinct(Country_Location, Defense_Type) %>%
+  mutate(present = 1) %>%
+  pivot_wider(names_from = Defense_Type, values_from = present, values_fill = 0)
 
-# 将 Country_Location 设为行名
 binary_matrix <- binary_matrix %>% column_to_rownames("Country_Location")
 
-# 交换横纵坐标: 转置矩阵并确保转置后的结果是 data.frame
 binary_matrix <- as.data.frame(t(binary_matrix))
 
-# 确保列名和行名正确
 binary_matrix <- binary_matrix %>% rownames_to_column(var = "Defense_Type")
 
-# 对列进行排序（按字母顺序排序为例）
-custom_order <- c("Defense_Type", "UK_After_Filter", "SP_After_Filter", "DK_After_Filter", "UK_Before_Filter", "SP_Before_Filter", "DK_Before_Filter")
-binary_matrix <- binary_matrix %>% select(all_of(custom_order))
+custom_order <- c("UK_BTP", "SP_BTP", "DK_BTP", "UK_MS", "SP_MS", "DK_MS", "UK_RS", "SP_RS", "DK_RS", "UK_HP", "SP_HP", "DK_HP")
+binary_matrix <- binary_matrix %>% select(Defense_Type, all_of(custom_order))
 
-# 对列进行重命名（如有需要）
-binary_matrix <- binary_matrix %>%
-  rename(UK_AF = UK_After_Filter, SP_AF = SP_After_Filter, DK_AF = DK_After_Filter, UK_BF = UK_Before_Filter, SP_BF = SP_Before_Filter, DK_BF = DK_Before_Filter)  # 替换为实际列名和新列名
+png("Results/02_DF_distribution/02_Upset_new/upset_plot_country_location.png", 
+    width = 5, height = 5, units = "in", res = 600)
 
-# # 设置保存路径和图像大小
-# pdf("Results/01_df_num_distribution/Upset/upset_plot_country_location.pdf", width = 12, height = 6)  # 单位为英寸，分辨率为 300 
-# 
-# # 绘制 Upset 图，并添加标签
-# upset(binary_matrix, 
-#       sets = colnames(binary_matrix)[-1],  # 除去第一列 "Defense_Type" 
-#       order.by = "freq", 
-#       keep.order = TRUE,
-#       main.bar.color = "#BF7EA2",         # 设置主条形图的颜色
-#       sets.bar.color = "#0F7BA6")        # 设置集合条形图的颜色
-# 
-# # 关闭设备保存图像
-# dev.off()
-
-# 设置保存路径、图像大小和分辨率
-png("Results/01_df_num_distribution/Upset/upset_plot_country_locationbaf.png", 
-    width = 5, height = 5, units = "in", res = 600)  # 单位为英寸，分辨率为 300 DPI
-
-# 绘制 Upset 图，并添加标签
 upset(binary_matrix, 
-      sets = colnames(binary_matrix)[-1],  # 除去第一列 "Defense_Type" 
-      order.by = "freq", 
+      sets = custom_order,
       keep.order = TRUE,
-      main.bar.color = "#BF7EA2",         # 设置主条形图的颜色
-      sets.bar.color = "#0F7BA6")        # 设置集合条形图的颜色
+      order.by = "degree",
+      main.bar.color = "#BF7EA2",
+      sets.bar.color = "#0F7BA6")
 
-# 关闭设备保存图像
 dev.off()
 ```
 
 ## Country + Genome Location
 ```{r}
-# 读取数据并筛选 Defense_Unsure 列不为 "Yes" 的记录
-data <- read.delim("Collect/all_defense_info_single_full.txt", sep = "\t") %>%
-  filter(Defense_Unsure != "Yes")
+data <- read.csv("Collect/All_defense_info_sing.csv")
 
-# 创建 Country_Location 列
 data <- data %>% mutate(Country_Location = paste(Country, Contig_Classification, sep = "_"))
 
-# 创建防御类型的二元矩阵
 binary_matrix <- data %>%
-  distinct(Country_Location, Defense_Type) %>%  # 保留唯一的 Country_Location 和 Defense_Type 组合
-  mutate(present = 1) %>%  # 标记存在的 Defense_Type
-  pivot_wider(names_from = Defense_Type, values_from = present, values_fill = 0)  # 转换为宽格式，填充缺失值为 0
+  distinct(Country_Location, Defense_Type) %>%
+  mutate(present = 1) %>%
+  pivot_wider(names_from = Defense_Type, values_from = present, values_fill = 0)
 
-# 将 Country_Location 设为行名
 binary_matrix <- binary_matrix %>% column_to_rownames("Country_Location")
 
-# 交换横纵坐标: 转置矩阵并确保转置后的结果是 data.frame
 binary_matrix <- as.data.frame(t(binary_matrix))
 
-# 确保列名和行名正确
 binary_matrix <- binary_matrix %>% rownames_to_column(var = "Defense_Type")
 
-# 对列进行排序（按字母顺序排序为例）
 custom_order <- c("Defense_Type", "UK_Plasmid", "UK_Chromosome", "SP_Plasmid", "SP_Chromosome", "DK_Plasmid", "DK_Chromosome")
 
 binary_matrix <- binary_matrix %>% select(all_of(custom_order))
 
-# 对列进行重命名（如有需要）
 binary_matrix <- binary_matrix %>%
-  rename(UK_P = UK_Plasmid, UK_C = UK_Chromosome, SP_P = SP_Plasmid, SP_C = SP_Chromosome, DK_P = DK_Plasmid, DK_C = DK_Chromosome)  # 替换为实际列名和新列名
+  rename(UK_P = UK_Plasmid, UK_C = UK_Chromosome, SP_P = SP_Plasmid, SP_C = SP_Chromosome, DK_P = DK_Plasmid, DK_C = DK_Chromosome)
 
-# # 设置保存路径和图像大小
-# pdf("Results/01_df_num_distribution/Upset/upset_plot_country_location.pdf", width = 12, height = 6)  # 单位为英寸，分辨率为 300 
-# 
-# # 绘制 Upset 图，并添加标签
-# upset(binary_matrix, 
-#       sets = colnames(binary_matrix)[-1],  # 除去第一列 "Defense_Type" 
-#       order.by = "freq", 
-#       keep.order = TRUE,
-#       main.bar.color = "#BF7EA2",         # 设置主条形图的颜色
-#       sets.bar.color = "#0F7BA6")        # 设置集合条形图的颜色
-# 
-# # 关闭设备保存图像
-# dev.off()
+png("Results/02_DF_distribution/02_Upset_new/upset_plot_country_genomelocation.png", 
+    width = 5, height = 5, units = "in", res = 600)
 
-# 设置保存路径、图像大小和分辨率
-png("Results/01_df_num_distribution/Upset/upset_plot_country_genomelocation.png", 
-    width = 5, height = 5, units = "in", res = 600)  # 单位为英寸，分辨率为 300 DPI
-
-# 绘制 Upset 图，并添加标签
 upset(binary_matrix, 
-      sets = colnames(binary_matrix)[-1],  # 除去第一列 "Defense_Type" 
+      sets = colnames(binary_matrix)[-1],
       order.by = "freq", 
       keep.order = TRUE,
-      main.bar.color = "#BF7EA2",         # 设置主条形图的颜色
-      sets.bar.color = "#0F7BA6")        # 设置集合条形图的颜色
+      main.bar.color = "#BF7EA2",
+      sets.bar.color = "#0F7BA6")
 
-# 关闭设备保存图像
 dev.off()
 ```
 
-# Location BAF + Genome Location
+# Location + Genome Location
 ```{r}
-# 读取数据并筛选 Defense_Unsure 列不为 "Yes" 且 Contig_Classification 不为 "Phage" 的记录
-data <- read.delim("Collect/all_defense_info_single_full.txt", sep = "\t") %>%
-  filter(Defense_Unsure != "Yes", Contig_Classification %in% c("Plasmid", "Chromosome"))
+data <- read.csv("Collect/All_defense_info_sing.csv")
 
-# 创建组合分组列，结合 Location_BAF 和 Contig_Classification
-data <- data %>% mutate(Group = paste(Location_BAF, Contig_Classification, sep = "_"))
+data <- data %>% mutate(Group = paste(Location, Contig_Classification, sep = "_"))
 
-# 创建防御类型的二元矩阵
 binary_matrix <- data %>%
-  distinct(Group, Defense_Type) %>%  # 保留唯一的 Group 和 Defense_Type 组合
-  mutate(present = 1) %>%  # 标记存在的 Defense_Type
-  pivot_wider(names_from = Defense_Type, values_from = present, values_fill = 0)  # 转换为宽格式，填充缺失值为 0
+  distinct(Group, Defense_Type) %>%
+  mutate(present = 1) %>%
+  pivot_wider(names_from = Defense_Type, values_from = present, values_fill = 0)
 
-# 将 Group 设为行名
 binary_matrix <- binary_matrix %>% column_to_rownames("Group")
 
-# 交换横纵坐标: 转置矩阵并确保转置后的结果是 data.frame
 binary_matrix <- as.data.frame(t(binary_matrix))
 
-# 确保列名和行名正确
 binary_matrix <- binary_matrix %>% rownames_to_column(var = "Defense_Type")
 
-# 对列进行排序（按字母顺序排序为例）
-custom_order <- colnames(binary_matrix)  # 获取所有列名
+custom_order <- c("Defense_Type", "BTP_Phage", "MS_Phage", "RS_Phage", "HP_Phage", 
+                  "BTP_Plasmid", "MS_Plasmid", "RS_Plasmid", "HP_Plasmid", 
+                  "BTP_Chromosome", "MS_Chromosome", "RS_Chromosome", "HP_Chromosome")
 binary_matrix <- binary_matrix %>% select(all_of(custom_order))
 
-# 对列进行排序（按字母顺序排序为例）
-custom_order <- c("Defense_Type", "After_Filter_Plasmid", "After_Filter_Chromosome", "Before_Filter_Plasmid", "Before_Filter_Chromosome")
-binary_matrix <- binary_matrix %>% select(all_of(custom_order))
+png("Results/02_DF_distribution/02_Upset_new/upset_plot_location_genomelocation.png", 
+    width = 5, height = 5, units = "in", res = 600)
 
-# 对列进行重命名（如有需要）
-binary_matrix <- binary_matrix %>%
-  rename(AF_P = After_Filter_Plasmid, AF_C = After_Filter_Chromosome, BF_P = Before_Filter_Plasmid, BF_C = Before_Filter_Chromosome)  # 替换为实际列名和新列名
-
-# # 设置保存路径和图像大小
-# pdf("upset_plot_location_contig.pdf", width = 8, height = 6)  # 单位为英寸
-# 
-# # 绘制 Upset 图
-# upset(binary_matrix, 
-#       sets = colnames(binary_matrix)[-1],  # 除去第一列 "Defense_Type" 
-#       order.by = "freq", 
-#       keep.order = TRUE,
-#       main.bar.color = "#BF7EA2",         # 设置主条形图的颜色
-#       sets.bar.color = "#0F7BA6")         # 设置集合条形图的颜色
-# 
-# # 关闭设备保存图像
-# dev.off()
-
-# 设置保存路径、图像大小和分辨率
-png("Results/01_df_num_distribution/Upset/upset_plot_locationbaf_genomelocation.png", 
-    width = 5, height = 5, units = "in", res = 600)  # 单位为英寸，分辨率为 300 DPI
-
-# 绘制 Upset 图，并添加标签
 upset(binary_matrix, 
-      sets = colnames(binary_matrix)[-1],  # 除去第一列 "Defense_Type" 
+      sets = colnames(binary_matrix)[-1],
       order.by = "freq", 
       keep.order = TRUE,
-      main.bar.color = "#BF7EA2",         # 设置主条形图的颜色
-      sets.bar.color = "#0F7BA6")        # 设置集合条形图的颜色
+      main.bar.color = "#BF7EA2",
+      sets.bar.color = "#0F7BA6")
 
-# 关闭设备保存图像
 dev.off()
 ```
 
 # Country + Location BAF + Genome Location
 ```{r}
-# 读取数据并筛选 Defense_Unsure 列不为 "Yes" 且 Contig_Classification 不为 "Phage" 的记录
-data <- read.delim("Collect/all_defense_info_single_full.txt", sep = "\t") %>%
-  filter(Defense_Unsure != "Yes", Contig_Classification %in% c("Plasmid", "Chromosome"))
+data <- read.csv("Collect/All_defense_info_sing.csv")
 
-# 创建组合分组列，结合 Country、Location_BAF 和 Contig_Classification
 data <- data %>% mutate(Group = paste(Country, Location_BAF, Contig_Classification, sep = "_"))
 
-# 创建防御类型的二元矩阵
 binary_matrix <- data %>%
-  distinct(Group, Defense_Type) %>%  # 保留唯一的 Group 和 Defense_Type 组合
-  mutate(present = 1) %>%  # 标记存在的 Defense_Type
-  pivot_wider(names_from = Defense_Type, values_from = present, values_fill = 0)  # 转换为宽格式，填充缺失值为 0
+  distinct(Group, Defense_Type) %>%
+  mutate(present = 1) %>%
+  pivot_wider(names_from = Defense_Type, values_from = present, values_fill = 0)
 
-# 将 Group 设为行名
 binary_matrix <- binary_matrix %>% column_to_rownames("Group")
 
-# 交换横纵坐标: 转置矩阵并确保转置后的结果是 data.frame
 binary_matrix <- as.data.frame(t(binary_matrix))
 
-# 确保列名和行名正确
 binary_matrix <- binary_matrix %>% rownames_to_column(var = "Defense_Type")
 
-# # 对列进行排序（按字母顺序排序为例）
-# custom_order <- colnames(binary_matrix)  # 获取所有列名
-# binary_matrix <- binary_matrix %>% select(all_of(custom_order))
-
-# 对列进行排序（按字母顺序排序为例）
 custom_order <- c("Defense_Type", "UK_After_Filter_Plasmid", "SP_After_Filter_Plasmid", "DK_After_Filter_Plasmid", "UK_After_Filter_Chromosome", "SP_After_Filter_Chromosome", "DK_After_Filter_Chromosome", "UK_Before_Filter_Plasmid", "SP_Before_Filter_Plasmid", "DK_Before_Filter_Plasmid", "UK_Before_Filter_Chromosome", "SP_Before_Filter_Chromosome", "DK_Before_Filter_Chromosome")
 binary_matrix <- binary_matrix %>% select(all_of(custom_order))
 
-# 对列进行重命名（如有需要）
 binary_matrix <- binary_matrix %>%
   rename(UK_AF_P = UK_After_Filter_Plasmid, SP_AF_P = SP_After_Filter_Plasmid, DK_AF_P = DK_After_Filter_Plasmid, UK_AF_C = UK_After_Filter_Chromosome, SP_AF_C = SP_After_Filter_Chromosome, DK_AF_C = DK_After_Filter_Chromosome, 
-         UK_BF_P = UK_Before_Filter_Plasmid, SP_BF_P = SP_Before_Filter_Plasmid, DK_BF_P = DK_Before_Filter_Plasmid, UK_BF_C = UK_Before_Filter_Chromosome, SP_BF_C = SP_Before_Filter_Chromosome, DK_BF_C = DK_Before_Filter_Chromosome)  # 替换为实际列名和新列名
+         UK_BF_P = UK_Before_Filter_Plasmid, SP_BF_P = SP_Before_Filter_Plasmid, DK_BF_P = DK_Before_Filter_Plasmid, UK_BF_C = UK_Before_Filter_Chromosome, SP_BF_C = SP_Before_Filter_Chromosome, DK_BF_C = DK_Before_Filter_Chromosome)
 
-# # 设置保存路径和图像大小
-# pdf("Results/01_df_num_distribution/Upset/upset_plot_contry_location_genome.pdf", width = 8, height = 6)  # 单位为英寸
-# 
-# # 绘制 Upset 图
-# upset(binary_matrix, 
-#       sets = colnames(binary_matrix)[-1],  # 除去第一列 "Defense_Type" 
-#       order.by = "freq", 
-#       keep.order = TRUE,
-#       main.bar.color = "#BF7EA2",         # 设置主条形图的颜色
-#       sets.bar.color = "#0F7BA6")         # 设置集合条形图的颜色
-# 
-# # 关闭设备保存图像
-# dev.off()
+png("Results/02_DF_distribution/02_Upset_new/upset_plot_country_locationbaf_genomelocation.png", 
+    width =12, height = 6, units = "in", res = 600)
 
-# 设置保存路径、图像大小和分辨率
-png("Results/01_df_num_distribution/Upset/upset_plot_country_locationbaf_genomelocation.png", 
-    width =12, height = 6, units = "in", res = 600)  # 单位为英寸，分辨率为 300 DPI
-
-# 绘制 Upset 图，并添加标签
 upset(binary_matrix, 
-      sets = colnames(binary_matrix)[-1],  # 除去第一列 "Defense_Type" 
+      sets = colnames(binary_matrix)[-1],
       order.by = "freq", 
       keep.order = TRUE,
-      main.bar.color = "#BF7EA2",         # 设置主条形图的颜色
-      sets.bar.color = "#0F7BA6")        # 设置集合条形图的颜色
+      main.bar.color = "#BF7EA2",
+      sets.bar.color = "#0F7BA6")
 
-# 关闭设备保存图像
 dev.off()
 ```
 
 
-# rose plots
-
-## All contigs classification
-
-```{r}
-library(ggplot2)
-
-# Define data
-data <- data.frame(
-  group = c("CH-96%", "PL-L-PS-1.5%", "PH-1.2%","PL-L-GM-1.2%", "PL-CR-0.1%"),
-  percentage = c(90, 66, 33, 33, 20)
-)
-
-# Add a minimum value to ensure small proportions are visible
-data$percentage_cliff <- pmax(data$percentage, 0.1)
-
-# Create bar plot
-bar <- ggplot(data, aes(x = factor(group, levels = group), y = percentage_cliff, fill = group)) +
-  geom_bar(stat = "identity", width = 1, show.legend = FALSE) +
-  scale_y_continuous(limits = c(0, 100), expand = c(0, 0)) +
-  scale_fill_manual(values = c("#aa7aa7","#99ce76","#ceb7ce","#d6ecc1","#75b989")) +
-  theme_void() +
-  labs(x = NULL, y = NULL) +
-  theme(
-    axis.text.y = element_blank(), 
-    axis.ticks = element_blank(),
-    axis.text.x = element_text(size = 12, face = "bold", color = "#333333"),
-    plot.title = element_blank(),
-    plot.caption = element_text(size = 10, face = "italic"),
-    plot.margin = unit(c(2, 2, 2, 2), "cm")
-  )
-
-# Add polar coordinates and disable clipping
-polar_bar <- bar + coord_polar(theta = "x", start = 0, clip = "off")
-
-# Display the plot
-print(polar_bar)
-
-# Save the plot as a PDF
-ggsave("rose_plot.pdf", plot = polar_bar, width = 6, height = 6, units = "in", dpi = 300)
-
-```
 

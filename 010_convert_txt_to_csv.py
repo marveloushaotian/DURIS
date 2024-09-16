@@ -27,19 +27,24 @@ def process_files(input_path, output_path):
     # Create output directory if it doesn't exist
     if os.path.isdir(input_path):
         os.makedirs(output_path, exist_ok=True)
-    elif not os.path.exists(os.path.dirname(output_path)):
-        os.makedirs(os.path.dirname(output_path), exist_ok=True)
+    else:
+        output_dir = os.path.dirname(output_path)
+        if output_dir:
+            os.makedirs(output_dir, exist_ok=True)
+        elif not os.path.exists(output_path):
+            # If output_path is just a filename, create it in the current directory
+            output_path = os.path.join(os.getcwd(), output_path)
 
-    if os.path.isfile(input_path) and not os.path.isdir(output_path):
+    if os.path.isfile(input_path):
         # Process single file
         convert_tsv_to_csv(input_path, output_path)
-    elif os.path.isdir(input_path) and os.path.isdir(output_path):
+    elif os.path.isdir(input_path):
         # Process directory
-        for tsv_file in input_path.glob('*.txt'):
-            csv_file = output_path / tsv_file.with_suffix('.csv').name
-            convert_tsv_to_csv(tsv_file, csv_file)
+        for tsv_file in Path(input_path).glob('*.txt'):
+            csv_file = os.path.join(output_path, tsv_file.with_suffix('.csv').name)
+            convert_tsv_to_csv(str(tsv_file), csv_file)
     else:
-        raise ValueError("Input and output must be both files or both directories.")
+        raise ValueError("Input must be a file or directory.")
 
 def main():
     parser = argparse.ArgumentParser(description="Convert tab-separated (TSV) files to comma-separated (CSV) files.")

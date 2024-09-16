@@ -1,9 +1,11 @@
 import pandas as pd
 import argparse
+import os
+from tqdm import tqdm
 
 def process_file(input_file, output_file):
     # Load the file into a DataFrame
-    df = pd.read_csv(input_file, sep='\t')
+    df = pd.read_csv(input_file)
 
     # Filter for specific Defense Types
     selected_defense_types = ['PD_T4_6', 'RM', 'SoFic', 'CRISPRCas', 'AbiE', 'CBASS', 'Septu', 'Wadjet', 'AbiD', 'Zorya']
@@ -43,16 +45,45 @@ def process_file(input_file, output_file):
         else:
             combined_df[phylum] = 0
 
-    # Save the combined DataFrame to a text file
-    combined_df.to_csv(output_file, sep='\t')
+    # Reorder columns
+    column_order = selected_phyla + ['Plasmid', 'Phage']
+    combined_df = combined_df[column_order]
+
+    # Rename the columns
+    column_map = {
+        'Pseudomonadota': 'Ps', 'Bacteroidota': 'Ba', 'Bacillota': 'Bc', 'Campylobacterota': 'Ca',
+        'Actinomycetota': 'Ac', 'Myxococcota': 'My', 'Verrucomicrobiota': 'Ve', 'Thermodesulfobacteriota': 'Th',
+        'Plasmid': 'Pm', 'Phage': 'Ph'
+    }
+    combined_df.columns = combined_df.columns.map(lambda x: column_map.get(x, x))
+
+    # Reorder rows
+    row_order = ['PD_T4_6', 'RM', 'SoFic', 'CRISPRCas', 'AbiE', 'CBASS', 'Septu', 'Wadjet', 'AbiD', 'Zorya']
+    combined_df = combined_df.reindex(row_order)
+
+    # Save the combined DataFrame to a CSV file
+    combined_df.to_csv(output_file)
 
     print(f"Processing complete. Results saved to {output_file}")
 
+def process_directory(input_dir, output_dir):
+    # Ensure the output directory exists
+    os.makedirs(output_dir, exist_ok=True)
+
+    # Get a list of all CSV files in the input directory
+    csv_files = [f for f in os.listdir(input_dir) if f.endswith('.csv')]
+
+    # Process each file with a progress bar
+    for input_file in tqdm(csv_files, desc="Processing files"):
+        input_path = os.path.join(input_dir, input_file)
+        output_file = os.path.join(output_dir, f"processed_{input_file}")
+        process_file(input_path, output_file)
+
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Process contig classification data into a single combined table.")
-    parser.add_argument('-i', '--input', required=True, help="Input file path")
-    parser.add_argument('-o', '--output', required=True, help="Output file path")
+    parser = argparse.ArgumentParser(description="Process contig classification data into combined tables.")
+    parser.add_argument('-i', '--input_dir', required=True, help="Input directory containing CSV files")
+    parser.add_argument('-o', '--output_dir', required=True, help="Output directory for processed CSV files")
 
     args = parser.parse_args()
 
-    process_file(args.input, args.output)
+    process_directory(args.input_dir, args.output_dir)

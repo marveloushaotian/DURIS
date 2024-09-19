@@ -42,21 +42,28 @@ create_scatter_plot <- function(data, x_var, y_var, defense_type) {
 
   ggplot(data, aes_string(x = x_var, y = y_var)) +
     geom_point(aes(color = Location, shape = Country, alpha = factor(Season), size = Contig_Classification)) +
-    geom_smooth(method = "lm", se = TRUE, color = "red", aes(group = 1)) +
-    labs(title = paste("Defense Type:", defense_type),
-         x = x_var, y = y_var,
-         subtitle = paste("r =", if(is.na(cor_value)) "NA" else cor_value, ",", p_value_text)) +
-    theme_minimal() +
-    theme(plot.title = element_text(size = 12),
-          plot.subtitle = element_text(size = 10),
-          legend.position = "right",
-          legend.box = "vertical") +
+    geom_smooth(method = "lm", se = TRUE, color = "#f07e40", aes(group = 1)) +
+    labs(x = x_var, y = y_var) +
+    theme_bw() +
+    theme(
+      axis.title = element_text(size = 14, face = "bold"),
+      axis.text = element_text(size = 12, face = "bold"),
+      legend.title = element_text(size = 12, face = "bold"),
+      legend.text = element_text(size = 10, face = "bold"),
+      legend.position = "right",
+      legend.box = "vertical"
+    ) +
+    scale_color_manual(values = c("#2e3472", "#be3558", "#459c7a", "#f07e40")) +
     scale_alpha_manual(values = c(0.3, 0.6, 1)) +
     scale_size_manual(values = size_values) +
-    guides(color = guide_legend(override.aes = list(size=3)),
-           shape = guide_legend(override.aes = list(size=3)),
-           alpha = guide_legend(title = "Season", override.aes = list(size=3)),
-           size = guide_legend(title = "Contig Classification", override.aes = list(size=unname(size_values))))
+    guides(
+      color = guide_legend(override.aes = list(size=3)),
+      shape = guide_legend(override.aes = list(size=3)),
+      alpha = guide_legend(title = "Season", override.aes = list(size=3)),
+      size = guide_legend(title = "Contig Classification", override.aes = list(size=unname(size_values)))
+    ) +
+    annotate("text", x = Inf, y = Inf, label = paste("r =", cor_value, "\n", p_value_text), 
+             hjust = 1.1, vjust = 1.1, size = 5, fontface = "bold")
 }
 
 # Create and save plots for each defense type
@@ -99,7 +106,7 @@ for (defense_type in unique(data$Defense_Type)) {
     filename <- paste0("correlation_plots_", gsub(" ", "_", defense_type), ".pdf")
     
     # Save the plot grid as a PDF
-    pdf(file.path("Results/03_DF_Cor_Everything/test6", filename), width = 24, height = 8 * n_rows)
+    pdf(file.path("Results/04_DF_Correlation/test6", filename), width = 30, height = 8 * n_rows)
     do.call(grid.arrange, c(plots, ncol = n_cols))
     dev.off()
     
@@ -109,4 +116,4 @@ for (defense_type in unique(data$Defense_Type)) {
   }
 }
 
-cat("All significant correlation plots have been generated and saved in the 'Results/03_DF_Cor_Everything/test5' directory.\n")
+cat("All significant correlation plots have been generated and saved in the 'Results/03_DF_Cor_Everything/test6' directory.\n")

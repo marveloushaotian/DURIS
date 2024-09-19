@@ -25,24 +25,37 @@ def create_boxplot(input_file, output_file, final_result_column, y_axis_label='D
         sns.stripplot(x='Country', y=final_result_column, hue='Location', data=df_cc, 
                       ax=axes[i], palette=location_color_map, dodge=True, alpha=0.5, jitter=True)
         
-        axes[i].set_title(f'{cc}', fontsize=14)
+        axes[i].set_title(f'{cc}', fontsize=22, fontweight='bold')
         axes[i].set_xlabel('')
         if i == 0:
-            axes[i].set_ylabel(y_axis_label, fontsize=14)
+            axes[i].set_ylabel(y_axis_label, fontsize=20, fontweight='bold')
         else:
             axes[i].set_ylabel('')
-        axes[i].tick_params(axis='x', rotation=0, labelsize=12)
-        axes[i].tick_params(axis='y', labelsize=12)
+        
+        # Update these lines
+        axes[i].tick_params(axis='x', rotation=0, labelsize=20)
+        axes[i].tick_params(axis='y', labelsize=14)
+        
+        # Add these lines to set font weight for tick labels
+        for label in axes[i].get_xticklabels() + axes[i].get_yticklabels():
+            label.set_fontweight('bold')
         
         # Remove legend for all subplots
         axes[i].get_legend().remove()
     
     # Add a single legend to the right of the subplots
     handles, labels = axes[-1].get_legend_handles_labels()
-    fig.legend(handles[:len(location_colors)], labels[:len(location_colors)], 
+    legend = fig.legend(handles[:len(location_colors)], labels[:len(location_colors)], 
                title='Location', bbox_to_anchor=(1.01, 0.5), loc='center left', 
-               fontsize=12, title_fontsize=14)
+               fontsize=18, title_fontsize=20, frameon=False, labelspacing=1.2)
     
+    # Make legend title bold
+    legend.get_title().set_fontweight('bold')
+    
+    # Make legend text bold
+    for text in legend.get_texts():
+        text.set_fontweight('bold')
+
     plt.tight_layout()
     plt.savefig(output_file, format='pdf', bbox_inches='tight', dpi=300)
     plt.close(fig)
@@ -53,7 +66,7 @@ def main():
     parser.add_argument('-i', '--input', required=True, help='Path to the input file (CSV format)')
     parser.add_argument('-o', '--output', required=True, help='Path to save the output plot (PDF format)')
     parser.add_argument('-c', '--column', required=True, help='Name of the column representing Final Result')
-    parser.add_argument('-y', '--ylabel', default='Defense Number per GB', help='Label for y-axis')
+    parser.add_argument('-y', '--ylabel', default='Defense Abundance', help='Label for y-axis')
     
     args = parser.parse_args()
     

@@ -19,7 +19,7 @@ library(tidyverse)
 chromosome_file <- "Collect/01_Defense/03_DF_TPM_Matrix/DefenseSubType/processed_chromosome_to_metagenome_abundance.csv"  # Replace with actual path
 plasmid_file <- "Collect/01_Defense/03_DF_TPM_Matrix/DefenseSubType/processed_crplasmid_to_metagenome_abundance.csv"  # Replace with actual path
 group_file <- "Collect/00_Metadata/Sample_Group.csv"  # Replace with actual path to group information
-output_file <- "Results/03_DF_Compare/Heatmap/Compare_subtype_cr_plasmid_heatmap.pdf"  # Replace with desired output path
+output_file <- "Results/03_DF_Compare/04_Heatmap/Compare_subtype_cr_plasmid_heatmap.pdf"  # Replace with desired output path
 figure_width <- 20   # in cm
 figure_height <- 40  # in cm
 fontsize <- 15

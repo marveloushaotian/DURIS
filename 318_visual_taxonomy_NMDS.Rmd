@@ -1,0 +1,137 @@
+---
+title: "318_visual_taxonomy_NMDS"
+author: "Haotian Zheng"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+rm(list = ls())
+knitr::opts_chunk$set(echo = TRUE)
+# Load required libraries
+library(dplyr)
+library(tidyr)
+library(readr)
+library(vegan)
+library(ggplot2)
+library(tidyverse)
+library(ggrepel)
+```
+
+# NMDS - taxonomy - before filter and after filter - with defense and without defense
+
+```{r}
+# Step 1: Read the input CSV file
+input_file <- "Results/04_Taxonomy_Diff/Tables/all_contigs_with_taxonomy_for_NMDS.csv"
+data_A <- read_csv(input_file)
+
+# Step 2: Create table B (Defense_Type != "No")
+data_B <- data_A %>% filter(Defense_Type != "No")
+
+# Step 3: Define the order of Kaiju_Phylum
+phylum_order <- c(
+  "Pseudomonadota", "Bacteroidota", "Bacillota", "Campylobacterota",
+  "Actinomycetota", "Myxococcota", "Verrucomicrobiota", "Thermodesulfobacteriota",
+  "Fusobacteriota", "Acidobacteriota", "Chloroflexota", "Gemmatimonadota",
+  "Candidatus_Saccharibacteria", "Planctomycetota", "Cyanobacteriota",
+  "Bdellovibrionota", "Nitrospirota", "Spirochaetota", "Euryarchaeota",
+  "Deinococcota", "Fibrobacterota", "Synergistota", "Mycoplasmatota",
+  "Candidatus_Thermoplasmatota", "Balneolota", "Rhodothermota", "Ignavibacteriota",
+  "Chlamydiota", "Chlorobiota", "Thermotogota", "Kiritimatiellota",
+  "Lentisphaerota", "Armatimonadota", "Aquificota", "Thermomicrobiota",
+  "Candidatus_Binatota", "Deferribacterota", "Candidatus_Methylomirabilota",
+  "Candidatus_Tectomicrobia", "Candidatus_Deferrimicrobiota", "Candidatus_Kryptoniota",
+  "Calditrichota", "Elusimicrobiota", "Chrysiogenota", "Candidatus_Dormiibacterota",
+  "Nitrospinota", "Candidatus_Cloacimonadota", "Nitrososphaerota", "Thermoproteota",
+  "Abditibacteriota", "Vulcanimicrobiota", "Candidatus_Fervidibacterota",
+  "Thermosulfidibacterota", "Candidatus_Absconditabacteria", "Candidatus_Melainabacteria",
+  "Atribacterota", "Candidatus_Cryosericota", "Candidatus_Omnitrophota",
+  "Dictyoglomota", "Thermodesulfobiota", "Candidatus_Bipolaricaulota",
+  "Coprothermobacterota", "Candidatus_Lokiarchaeota", "Caldisericota",
+  "Candidatus_Borrarchaeota", "Candidatus_Micrarchaeota", "Candidatus_Korarchaeota",
+  "Candidatus_Culexarchaeota", "Candidatus_Hadarchaeota", "Candidatus_Bathyarchaeota",
+  "Candidatus_Nanohalarchaeota"
+)
+
+# Step 4: Process table A with "All_" prefix
+result_A <- data_A %>%
+  group_by(Sample, Kaiju_Phylum) %>%
+  summarise(Count = n(), .groups = "drop") %>%
+  pivot_wider(names_from = Sample, values_from = Count, values_fill = 0) %>%
+  right_join(tibble(Kaiju_Phylum = phylum_order), by = "Kaiju_Phylum") %>%
+  arrange(match(Kaiju_Phylum, phylum_order)) %>%
+  mutate(across(-Kaiju_Phylum, ~replace_na(., 0))) %>%
+  rename_with(~paste0("All_", .), -Kaiju_Phylum)
+
+# Step 5: Process table B with "Defense_" prefix
+result_B <- data_B %>%
+  group_by(Sample, Kaiju_Phylum) %>%
+  summarise(Count = n(), .groups = "drop") %>%
+  pivot_wider(names_from = Sample, values_from = Count, values_fill = 0) %>%
+  right_join(tibble(Kaiju_Phylum = phylum_order), by = "Kaiju_Phylum") %>%
+  arrange(match(Kaiju_Phylum, phylum_order)) %>%
+  mutate(across(-Kaiju_Phylum, ~replace_na(., 0))) %>%
+  rename_with(~paste0("Defense_", .), -Kaiju_Phylum)
+
+# Step 6: Combine results horizontally
+combined_result <- result_A %>%
+  left_join(result_B, by = "Kaiju_Phylum")
+
+# Step 7: Read the group information
+group_file <- "Results/04_Taxonomy_Diff/Tables/taxonomy_nmds_group.csv"
+group_info <- read_csv(group_file)
+
+# Step 8: Prepare data for NMDS
+nmds_data <- combined_result %>%
+  column_to_rownames("Kaiju_Phylum") %>%
+  t() %>%
+  as.data.frame()
+
+# Step 9: Perform NMDS
+nmds_result <- metaMDS(nmds_data, distance = "bray")
+
+nmds_result_site <- as.data.frame(scores(nmds_result)$sites)
+
+# Step 10: Extract NMDS coordinates
+nmds_coords <- as.data.frame(scores(nmds_result_site))
+nmds_coords$Sample <- rownames(nmds_coords)
+
+# Step 11: Merge NMDS coordinates with group information
+plot_data <- left_join(nmds_coords, group_info, by = "Sample")
+
+# Calculate the centroids for each Location
+location_centroids <- plot_data %>%
+  group_by(Location) %>%
+  summarise(NMDS1 = mean(NMDS1), NMDS2 = mean(NMDS2))
+
+# Create the NMDS plot
+p <- ggplot(plot_data, aes(x = NMDS1, y = NMDS2, color = Location, shape = Country, alpha = Season)) +
+  geom_point(size = 3) +
+  stat_ellipse(aes(group = Location), level = 0.95, type = "t", linetype = 2, size = 0.5) +
+  geom_label_repel(data = location_centroids, 
+                   aes(x = NMDS1, y = NMDS2, label = Location), 
+                   size = 4, fontface = "bold", label.size = 0.25, 
+                   label.padding = unit(0.2, "lines"), 
+                   show.legend = FALSE,
+                   inherit.aes = FALSE,
+                   alpha = 0.7,  # 添加透明度
+                   box.padding = 0.5,  # 增加标签与其他元素的距离
+                   point.padding = 0.5,  # 增加标签与点的距离
+                   force = 2) +  # 增加排斥力
+  theme_bw() +
+  labs(x = "NMDS1", y = "NMDS2") +
+  scale_color_manual(values = c("#2e3472", "#be3558", "#459c7a", "#f07e40", "#2e3472", "#be3558", "#459c7a", "#f07e40")) +
+  scale_shape_manual(values = c(16, 17, 18)) +
+  scale_alpha_manual(values = c("WINTER" = 0.5, "SUMMER" = 1)) +
+  theme(
+    legend.position = "right",
+    axis.title = element_text(size = 16, face = "bold"),
+    axis.text = element_text(size = 14, face = "bold"),
+    legend.title = element_text(size = 14, face = "bold"),
+    legend.text = element_text(size = 12, face = "bold")
+  )
+
+# Save the plot
+ggsave("Results/04_Taxonomy_Diff/01_NMDS/nmds_plot_with_ellipses_and_labels.pdf", plot = p, width = 10, height = 8, dpi = 300)
+```
+

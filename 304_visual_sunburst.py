@@ -76,7 +76,7 @@ data = [("All Contigs", 287424, [
 ])]
 
 # Create the chart
-plt.figure(figsize=(12, 12))
+plt.figure(figsize=(8, 8))
 sunburst(data, color_map=color_map)
 plt.tight_layout()
 

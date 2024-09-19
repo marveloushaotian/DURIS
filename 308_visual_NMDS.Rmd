@@ -19,7 +19,7 @@ library(permute)
 
 ```{r}
 # Set the directory path
-directory_path <- "Collect/01_Defense/03_Defense_TPM_Abundance_Matrix/Inuse/"
+directory_path <- "Collect/01_Defense/03_DF_TPM_Matrix/DefenseSubType/"
 
 # Get all files in the directory
 files <- list.files(directory_path, pattern = "\\.csv$", full.names = TRUE)
@@ -147,17 +147,25 @@ process_file <- function(file_path) {
     geom_point(data = nmds_scores, aes(x = NMDS1, y = NMDS2, color = group, shape = country, alpha = season), size = 3) +
     # Add confidence ellipses
     geom_path(data = conf_intervals, aes(x = NMDS1, y = NMDS2, color = group, group = group), linetype = 2) +
-    scale_color_manual(values = c("HP" = "#BF7EA2", "RS" = "#0F7BA6", "MS" = "#FFA500", "BTP" = "#32CD32"), name = "Location") +
+    scale_color_manual(values = c("HP" = "#2e3472", "RS" = "#be3558", "MS" = "#459c7a", "BTP" = "#f07e40"), 
+                       name = "Location",
+                       breaks = c("HP", "RS", "MS", "BTP")) +
     scale_shape_manual(values = c("DK" = 16, "SP" = 17, "UK" = 18), name = "Country") +
     scale_alpha_manual(values = c("Summer" = 1, "Winter" = 0.5), name = "Season") +
-    theme_minimal() +
-    labs(title = "NMDS Plot", x = "NMDS1", y = "NMDS2") +
+    theme_bw() +
+    labs(x = "NMDS1", y = "NMDS2") +
     annotate("text", x = min(nmds_scores$NMDS1), y = max(nmds_scores$NMDS2), 
-             label = anosim_text, hjust = 0, vjust = 1, size = 5)
+             label = anosim_text, hjust = 0, vjust = 1, size = 6, font = "bold") + 
+    theme(
+      axis.title.x = element_text(size = 14, face = "bold"),
+      axis.title.y = element_text(size = 14, face = "bold"),
+      axis.text.x = element_text(size = 12, face = "italic"),
+      axis.text.y = element_text(size = 12, face = "italic")
+    )
   
   # Save NMDS plot as PDF
   plot_filename <- paste0("NMDS_plot_", tools::file_path_sans_ext(basename(file_path)), ".pdf")
-  ggsave(plot_filename, plot = nmds_plot, device = "pdf", width = 10, height = 8)
+  ggsave(plot_filename, plot = nmds_plot, device = "pdf", width = 9, height = 8)
   
   # Print a message to confirm the plot has been saved
   cat("NMDS plot saved as:", plot_filename, "\n")
@@ -348,151 +356,3 @@ veganCovEllipse <- function(cov, center, scale) {
 # Process all files
 lapply(files, process_file)
 ```
-
-# NMDS - taxonomy - before filter and after filter - with defense and without defense
-
-```{r}
-rm(list = ls())
-# Load required libraries
-library(dplyr)
-library(tidyr)
-library(readr)
-library(vegan)
-library(ggplot2)
-library(tidyverse)
-library(ggrepel)  # For text labels that don't overlap
-
-# Step 1: Read the input CSV file
-input_file <- "Results/05_Taxonomy/Tables/all_contigs_with_taxonomy_for_NMDS.csv"
-data_A <- read_csv(input_file)
-print(head(data_A))
-
-# Step 2: Create table B (Defense_Type != "No")
-data_B <- data_A %>% filter(Defense_Type != "No")
-print(head(data_B))
-
-# Step 3: Define the order of Kaiju_Phylum
-phylum_order <- c(
-  "Pseudomonadota", "Bacteroidota", "Bacillota", "Campylobacterota",
-  "Actinomycetota", "Myxococcota", "Verrucomicrobiota", "Thermodesulfobacteriota",
-  "Fusobacteriota", "Acidobacteriota", "Chloroflexota", "Gemmatimonadota",
-  "Candidatus_Saccharibacteria", "Planctomycetota", "Cyanobacteriota",
-  "Bdellovibrionota", "Nitrospirota", "Spirochaetota", "Euryarchaeota",
-  "Deinococcota", "Fibrobacterota", "Synergistota", "Mycoplasmatota",
-  "Candidatus_Thermoplasmatota", "Balneolota", "Rhodothermota", "Ignavibacteriota",
-  "Chlamydiota", "Chlorobiota", "Thermotogota", "Kiritimatiellota",
-  "Lentisphaerota", "Armatimonadota", "Aquificota", "Thermomicrobiota",
-  "Candidatus_Binatota", "Deferribacterota", "Candidatus_Methylomirabilota",
-  "Candidatus_Tectomicrobia", "Candidatus_Deferrimicrobiota", "Candidatus_Kryptoniota",
-  "Calditrichota", "Elusimicrobiota", "Chrysiogenota", "Candidatus_Dormiibacterota",
-  "Nitrospinota", "Candidatus_Cloacimonadota", "Nitrososphaerota", "Thermoproteota",
-  "Abditibacteriota", "Vulcanimicrobiota", "Candidatus_Fervidibacterota",
-  "Thermosulfidibacterota", "Candidatus_Absconditabacteria", "Candidatus_Melainabacteria",
-  "Atribacterota", "Candidatus_Cryosericota", "Candidatus_Omnitrophota",
-  "Dictyoglomota", "Thermodesulfobiota", "Candidatus_Bipolaricaulota",
-  "Coprothermobacterota", "Candidatus_Lokiarchaeota", "Caldisericota",
-  "Candidatus_Borrarchaeota", "Candidatus_Micrarchaeota", "Candidatus_Korarchaeota",
-  "Candidatus_Culexarchaeota", "Candidatus_Hadarchaeota", "Candidatus_Bathyarchaeota",
-  "Candidatus_Nanohalarchaeota"
-)
-
-# Step 4: Process table A with "All_" prefix
-result_A <- data_A %>%
-  group_by(Sample, Kaiju_Phylum) %>%
-  summarise(Count = n(), .groups = "drop") %>%
-  pivot_wider(names_from = Sample, values_from = Count, values_fill = 0) %>%
-  right_join(tibble(Kaiju_Phylum = phylum_order), by = "Kaiju_Phylum") %>%
-  arrange(match(Kaiju_Phylum, phylum_order)) %>%
-  mutate(across(-Kaiju_Phylum, ~replace_na(., 0))) %>%
-  rename_with(~paste0("All_", .), -Kaiju_Phylum)
-
-print(head(result_A))
-
-# Step 5: Process table B with "Defense_" prefix
-result_B <- data_B %>%
-  group_by(Sample, Kaiju_Phylum) %>%
-  summarise(Count = n(), .groups = "drop") %>%
-  pivot_wider(names_from = Sample, values_from = Count, values_fill = 0) %>%
-  right_join(tibble(Kaiju_Phylum = phylum_order), by = "Kaiju_Phylum") %>%
-  arrange(match(Kaiju_Phylum, phylum_order)) %>%
-  mutate(across(-Kaiju_Phylum, ~replace_na(., 0))) %>%
-  rename_with(~paste0("Defense_", .), -Kaiju_Phylum)
-
-print(head(result_B))
-
-# Step 6: Combine results horizontally
-combined_result <- result_A %>%
-  left_join(result_B, by = "Kaiju_Phylum")
-
-print(head(combined_result))
-
-# Step 7: Read the group information
-group_file <- "Results/05_Taxonomy/Tables/taxonomy_nmds_group.csv"
-group_info <- read_csv(group_file)
-print(head(group_info))
-
-# Step 8: Prepare data for NMDS
-nmds_data <- combined_result %>%
-  column_to_rownames("Kaiju_Phylum") %>%  # 将Kaiju_Phylum设为行名
-  t() %>%  # 转置数据，使样本成为行，Phylum成为列
-  as.data.frame()
-
-print(dim(nmds_data))  # 打印维度，应该是 156 x 71
-print(head(nmds_data))
-
-# Step 9: Perform NMDS
-nmds_result <- metaMDS(nmds_data, distance = "bray")
-print(summary(nmds_result))
-
-nmds_result_site <- as.data.frame(scores(nmds_result)$sites)
-
-# Step 10: Extract NMDS coordinates
-nmds_coords <- as.data.frame(scores(nmds_result_site))
-nmds_coords$Sample <- rownames(nmds_coords)
-print(head(nmds_coords))
-
-# Step 11: Merge NMDS coordinates with group information
-plot_data <- left_join(nmds_coords, group_info, by = "Sample")
-print(head(plot_data))
-
-# Create the NMDS plot
-ggplot(plot_data, aes(x = NMDS1, y = NMDS2, color = Location, shape = Country, alpha = Season)) +
-  geom_point(size = 3) +
-  theme_minimal() +
-  labs(title = "NMDS Plot of Taxonomic Data",
-       x = "NMDS1",
-       y = "NMDS2") +
-  scale_color_brewer(palette = "Set1") +
-  scale_shape_manual(values = c(16, 17, 18)) +  # 16 for DK (dot), 17 for UK (triangle), 18 for SP (diamond)
-  scale_alpha_manual(values = c("WINTER" = 0.5, "SUMMER" = 1)) +
-  theme(legend.position = "right")
-
-# Save the plot
-ggsave("nmds_plot_multi_dimension.png", width = 12, height = 8, dpi = 300)
-
-
-# Create the NMDS plot
-p <- ggplot(plot_data, aes(x = NMDS1, y = NMDS2, color = Location, shape = Country, alpha = Season)) +
-  geom_point(size = 3) +
-  stat_ellipse(aes(group = Location), level = 0.95, type = "t", linetype = 2) +
-  theme_minimal() +
-  labs(title = "NMDS Plot of Taxonomic Data with Confidence Ellipses",
-       x = "NMDS1",
-       y = "NMDS2") +
-  scale_color_brewer(palette = "Set1") +
-  scale_shape_manual(values = c(16, 17, 18)) +  # 16 for DK (dot), 17 for UK (triangle), 18 for SP (diamond)
-  scale_alpha_manual(values = c("WINTER" = 0.5, "SUMMER" = 1)) +
-  theme(legend.position = "right")
-
-# Add centroid labels for each Location
-centroids <- plot_data %>%
-  group_by(Location) %>%
-  summarise(NMDS1 = mean(NMDS1), NMDS2 = mean(NMDS2))
-
-p <- p + geom_text_repel(plot_data = centroids, aes(x = NMDS1, y = NMDS2, label = Location), 
-                         color = "black", fontface = "bold", box.padding = 0.5, inherit.aes = FALSE)
-
-# Save the plot
-ggsave("nmds_plot_with_ellipses.png", plot = p, width = 12, height = 8, dpi = 300)
-```
-

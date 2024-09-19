@@ -25,14 +25,15 @@ def create_stacked_bar_chart(input_file, output_file, value_column):
     contig_classifications = filtered_df['Contig_Classification'].unique()
     countries = filtered_df['Country'].unique()
     
-    fig, axes = plt.subplots(len(contig_classifications), len(countries), figsize=(20, 8*len(contig_classifications)), sharex=False, sharey=False)
+    fig, axes = plt.subplots(1, len(contig_classifications) * len(countries), figsize=(28, 7), sharex=False, sharey=False)
 
     # Increase font size for all text elements
-    plt.rcParams.update({'font.size': 14})
+    plt.rcParams.update({'font.size': 14, 'font.weight': 'bold'})
 
-    for i, contig_classification in enumerate(contig_classifications):
-        for j, country in enumerate(countries):
-            ax = axes[i, j] if len(contig_classifications) > 1 and len(countries) > 1 else axes[i] if len(countries) == 1 else axes[j]
+    subplot_index = 0
+    for contig_classification in contig_classifications:
+        for country in countries:
+            ax = axes[subplot_index]
             class_country_df = filtered_df[(filtered_df['Contig_Classification'] == contig_classification) & (filtered_df['Country'] == country)]
             
             # Group by Location
@@ -47,33 +48,46 @@ def create_stacked_bar_chart(input_file, output_file, value_column):
                     value = location_df[location_df['Defense_Type'] == defense_type][value_column].sum()
                     plot_data.loc[location, defense_type] = value if value > 0 else 0.0
             
-            # Plot the stacked bar chart
+            # Plot the stacked bar chart with reduced width and spacing
             plot_data.plot(kind='bar', stacked=True, ax=ax, width=0.8, color=[color_dict[col] for col in plot_data.columns], legend=False)
             
-            ax.set_xticklabels(locations, rotation=0, ha='center', fontsize=12)
-            ax.set_xlabel('', fontsize=14)
-            if j == 0:  # Only set y-label for the leftmost subplot in each row
-                ax.set_ylabel(f'{value_column} per Defense Type', fontsize=14)
+            # Adjust bar positions to reduce spacing
+            for container in ax.containers:
+                plt.setp(container, width=0.8)
+            
+            # Adjust x-axis limits to reduce spacing between bars
+            ax.set_xlim(-0.5, len(locations) - 0.5)
+            
+            # Remove x-axis ticks
+            ax.tick_params(axis='x', which='both', bottom=False, top=False)
+            
+            ax.set_xticklabels(locations, rotation=0, ha='center', fontsize=12, fontweight='bold')
+            ax.set_xlabel('', fontsize=18, fontweight='bold')
+            if subplot_index == 0:  # Only set y-label for the leftmost subplot
+                ax.set_ylabel('Defense Abundance', fontsize=14, fontweight='bold')
             else:
-                ax.set_ylabel('', fontsize=14)
-            ax.set_title(f'{contig_classification} - {country}', fontsize=16)
+                ax.set_ylabel('', fontsize=14, fontweight='bold')
+            ax.set_title(f'{contig_classification}\n{country}', fontsize=16, fontweight='bold')
+            
+            subplot_index += 1
 
     # Add a single legend for all subplots, removing duplicates
     handles, labels = ax.get_legend_handles_labels()
     by_label = dict(zip(labels, handles))
-    legend = fig.legend(by_label.values(), by_label.keys(), title='Defense Type', bbox_to_anchor=(1.05, 0.5), loc='center left', ncol=1, fontsize=12)
+    legend = fig.legend(by_label.values(), by_label.keys(), title='Defense Type', bbox_to_anchor=(1.01, 0.5), loc='center left', ncol=1, fontsize=12, frameon=False)
     legend.get_title().set_fontsize(14)  # Increase font size for legend title
-    plt.setp(legend.get_texts(), fontsize=12)  # Increase font size for legend text
+    legend.get_title().set_fontweight('bold')  # Make legend title bold
+    plt.setp(legend.get_texts(), fontsize=12, fontweight='bold')  # Increase font size and make bold for legend text
 
     # Adjust spacing between legend items
     legend._loc = 2  # upper left
     legend._ncol = 1  # single column
-    legend._bbox_to_anchor = (1.05, 1)  # move it to the right
-    legend.set_bbox_to_anchor((1.05, 0.5))
+    legend._bbox_to_anchor = (1.01, 1)  # move it closer to the left
+    legend.set_bbox_to_anchor((1.01, 0.5))
     legend._loc = 6  # center left
 
-    plt.tight_layout()
-    plt.savefig(output_file, format='pdf', bbox_inches='tight')
+    plt.tight_layout(rect=[0, 0, 0.98, 1])  # Adjust the right margin to make the plot more compact
+    plt.savefig(output_file, format='pdf', bbox_inches='tight', dpi=300)
     plt.close()
 
 def main():

@@ -6,22 +6,24 @@ def sunburst(nodes, total=np.pi * 2, offset=0, level=0, ax=None, text_rotation=T
 
     if level == 0 and len(nodes) == 1:
         label, value, subnodes = nodes[0]
-        ax.bar([0], [0.5], [np.pi * 2], color='#E0E0E0')
-        ax.text(0, 0, label, ha='center', va='center', fontsize=14, fontweight='bold')
+        # Adjust the size of the central circle
+        central_circle_size = 0.2  # Decreased from 0.3 to 0.2
+        ax.bar([0], [central_circle_size], [np.pi * 2], color='#E0E0E0')
+        ax.text(0, 0, label, ha='center', va='center', fontsize=18, fontweight='bold')  # Slightly reduced font size
         sunburst(subnodes, total=value, level=level + 1, ax=ax, color_map=color_map, path=label)
     elif nodes:
         d = np.pi * 2 / total
 
         # Define width factors for each layer
-        width_factors = [1/4, 1/2, 1/2, 1/2]
+        width_factors = [0.20, 0.19, 0.18]  # Adjusted to account for smaller central circle
 
         for i, (label, value, subnodes) in enumerate(nodes):
             if level < len(width_factors):
                 inner = sum(width_factors[:level])
                 outer = inner + width_factors[level]
             else:
-                inner = level * width_factors[-1]
-                outer = (level + 1) * width_factors[-1]
+                inner = sum(width_factors[:-1]) + (level - len(width_factors) + 1) * width_factors[-1]
+                outer = inner + width_factors[-1]
 
             # Generate a unique key for the color map using the path
             current_path = f"{path}-{label}" if path else label
@@ -36,8 +38,12 @@ def sunburst(nodes, total=np.pi * 2, offset=0, level=0, ax=None, text_rotation=T
             percentage = (value / total) * 100
             text = f"{label}\n{percentage:.2f}%"
 
+            # Adjust font size based on level
+            font_size = 18 - level * 2  # Decrease font size for inner rings
+            font_size = max(font_size, 10)  # Ensure font size doesn't go below 10
+
             ax.text(offset + value * d / 2, (inner + outer) / 2, text,
-                    ha='center', va='center', fontsize=18,
+                    ha='center', va='center', fontsize=font_size,
                     fontweight='bold', rotation=0, rotation_mode='anchor')
 
             sunburst(subnodes, total=total, offset=offset, level=level + 1, ax=ax, color_map=color_map, path=current_path)
@@ -48,58 +54,24 @@ def sunburst(nodes, total=np.pi * 2, offset=0, level=0, ax=None, text_rotation=T
 
 # Define color mapping, assigning unique colors for each path
 color_map = {
-    "All Contigs": "#ffffff",
-    "All Contigs-Metagenome": "#e3dce4",
-    "All Contigs-Plasmidome": "#e1f0d6",
-    "All Contigs-Metagenome-Circular": "#dcd0dd",
-    "All Contigs-Metagenome-Linear P": "#ceb7ce",
-    "All Contigs-Metagenome-Linear G": "#be9bbc",
-    "All Contigs-Metagenome-Circular-Defense": "#a673a3",
-    "All Contigs-Metagenome-Circular-None": "#af82ac",
-    "All Contigs-Metagenome-Linear P-Defense": "#a673a3",
-    "All Contigs-Metagenome-Linear P-None": "#af82ac",
-    "All Contigs-Metagenome-Linear G-Defense": "#a673a3",
-    "All Contigs-Metagenome-Linear G-None": "#af82ac",
-    "All Contigs-Plasmidome-Circular": "#d1eab6",
-    "All Contigs-Plasmidome-Linear P": "#bfe292",
-    "All Contigs-Plasmidome-Linear G": "#a6d579",
-    "All Contigs-Plasmidome-Circular-Defense": "#7cbd85",
-    "All Contigs-Plasmidome-Circular-None": "#92ca77",
-    "All Contigs-Plasmidome-Linear P-Defense": "#7cbd85",
-    "All Contigs-Plasmidome-Linear P-None": "#92ca77",
-    "All Contigs-Plasmidome-Linear G-Defense": "#7cbd85",
-    "All Contigs-Plasmidome-Linear G-None": "#92ca77"
+    "All Contigs": "#eaeeea",
+    "All Contigs-Metagenome": "#dcd0dd",
+    "All Contigs-Plasmidome": "#c0cfbd",
+    "All Contigs-Metagenome-Defense": "#a775a4",
+    "All Contigs-Metagenome-None": "#c6a4c5",
+    "All Contigs-Plasmidome-Defense": "#7b9b64",
+    "All Contigs-Plasmidome-None": "#9bb88a"
 }
 
 # Data structure
 data = [("All Contigs", 287424, [
     ("Metagenome", 206581, [
-        ("Circular", 3361, [
-            ("Defense", 311, []),
-            ("None", 3050, [])
-        ]),
-        ("Linear P", 89568, [
-            ("Defense", 3040, []),
-            ("None", 86528, [])
-        ]),
-        ("Linear G", 113652, [
-            ("Defense", 8962, []),
-            ("None", 104690, [])
-        ])
+        ("Defense", 12313, []),
+        ("None", 194268, [])
     ]),
     ("Plasmidome", 80843, [
-        ("Circular", 6395, [
-            ("Defense", 338, []),
-            ("None", 6057, [])
-        ]),
-        ("Linear P", 47153, [
-            ("Defense", 1234, []),
-            ("None", 45919, [])
-        ]),
-        ("Linear G", 27315, [
-            ("Defense", 997, []),
-            ("None", 26318, [])
-        ])
+        ("Defense", 2569, []),
+        ("None", 78274, [])
     ])
 ])]
 

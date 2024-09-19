@@ -22,7 +22,9 @@ data <- read_csv_files("Results/02_DF_Distribution/02_Venn/Defense_Type/Location
 
 # Create a color palette for the sets
 num_sets <- length(data)
-color_palette <- colorRampPalette(c("#", "#EFC000FF", "#868686FF", "#CD534CFF"))(num_sets)
+
+# Fix: Replace the invalid "#" with a valid color code
+color_palette <- colorRampPalette(c("#FF0000FF", "#EFC000FF", "#868686FF", "#CD534CFF"))(num_sets)
 
 # Create Venn diagram
 venn_plot <- ggvenn(

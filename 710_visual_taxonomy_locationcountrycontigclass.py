@@ -2,6 +2,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 import argparse
+import numpy as np
 
 def process_data(df, contig_class):
     # Filter data based on Contig_Classification
@@ -10,8 +11,16 @@ def process_data(df, contig_class):
     # Filter out empty or 'No' values in Kaiju_Phylum
     df_filtered = df_filtered[df_filtered['Kaiju_Phylum'].notna() & (df_filtered['Kaiju_Phylum'] != 'No')]
     
-    # Group by Country, Location_BAF, and Kaiju_Phylum
-    grouped = df_filtered.groupby(['Country', 'Location_BAF', 'Kaiju_Phylum']).size().unstack(fill_value=0)
+    # Define the desired order for Location
+    location_order = ['HP', 'RS', 'MS', 'BTP']
+    
+    # Group by Country, Location, and Kaiju_Phylum
+    grouped = df_filtered.groupby(['Country', 'Location', 'Kaiju_Phylum']).size().unstack(fill_value=0)
+    
+    # Sort the index based on Country and the custom Location order
+    grouped = grouped.reset_index()
+    grouped['Location'] = pd.Categorical(grouped['Location'], categories=location_order, ordered=True)
+    grouped = grouped.sort_values(['Country', 'Location']).set_index(['Country', 'Location'])
     
     # Calculate percentages
     percentages = grouped.div(grouped.sum(axis=1), axis=0) * 100
@@ -29,7 +38,12 @@ def process_data(df, contig_class):
 def plot_stacked_bar(ax, data, title):
     colors = ["#c0dbe6","#2b526f","#4a9ba7","#a3cbd6","#c0cfbd","#9bb88a","#7b9b64","#d0cab7","#c6a4c5","#9b7baa","#7a7aaf","#434d91","#5284a2","#82b4c8","#9d795d","#d1b49a","#fff08c","#e1834e","#cd6073","#ffc7c9","#969696","#d1d9e2"]
     
-    data.plot(kind='bar', stacked=True, ax=ax, color=colors, width=0.8)
+    # Sort columns by total percentage (descending)
+    sorted_cols = data.sum().sort_values(ascending=False).index.tolist()
+    data_sorted = data[sorted_cols]
+    
+    # Plot stacked bars
+    data_sorted.plot(kind='bar', stacked=True, ax=ax, color=colors, width=0.8)
     
     ax.set_title(title)
     ax.set_xlabel('')
@@ -37,30 +51,49 @@ def plot_stacked_bar(ax, data, title):
     ax.legend().remove()
     
     # Rotate x-axis labels and align them to the center of the bars
-    plt.setp(ax.get_xticklabels(), rotation=45, ha='right')
+    plt.setp(ax.get_xticklabels(), rotation=90, ha='center')
     
     # Replace 'Before_Filter' with 'BF' and 'After_Filter' with 'AF' in x-axis labels
-    labels = [item.get_text().replace('Before_Filter', 'BF').replace('After_Filter', 'AF') for item in ax.get_xticklabels()]
+    labels = [f"{country}\n{loc}" for country, loc in data_sorted.index]
     ax.set_xticklabels(labels)
+    
+    # Remove space at the top of the bars
+    ax.set_ylim(0, 100)
+    
+    # Increase spacing between countries
+    ax.set_xticklabels(ax.get_xticklabels(), ha='center')
+    ax.tick_params(axis='x', which='major', pad=10)
+    
+    # Add extra space between countries
+    country_breaks = np.cumsum([len(data[data.index.get_level_values('Country') == country]) 
+                                for country in data.index.get_level_values('Country').unique()])
+    for break_point in country_breaks[:-1]:
+        ax.axvline(break_point - 0.5, color='white', linewidth=2)
+    
+    return sorted_cols
 
 def main(input_file, output_file):
-    # Read the data
-    df = pd.read_csv(input_file, sep='\t')
+    # Read the data in CSV format
+    df = pd.read_csv(input_file)
     
     # Get unique Contig_Classification values
     contig_classes = df['Contig_Classification'].unique()
     
     # Create a figure with 3 subplots side by side
-    fig, axes = plt.subplots(1, 3, figsize=(30, 10))
+    fig, axes = plt.subplots(1, 3, figsize=(20, 10))
     
     # Process data and create plots for each Contig_Classification
+    sorted_cols_list = []
     for ax, contig_class in zip(axes, contig_classes):
         data = process_data(df, contig_class)
-        plot_stacked_bar(ax, data, f'Contig Classification: {contig_class}')
+        sorted_cols = plot_stacked_bar(ax, data, f'Contig Classification: {contig_class}')
+        sorted_cols_list.append(sorted_cols)
     
-    # Add a common legend
+    # Add a common legend with order based on abundance
     handles, labels = axes[-1].get_legend_handles_labels()
-    fig.legend(handles[::-1], labels[::-1], loc='center right', bbox_to_anchor=(1.1, 0.5))
+    sorted_labels = sorted_cols_list[-1]  # Use the order from the last subplot
+    sorted_handles = [handles[labels.index(label)] for label in sorted_labels]
+    fig.legend(sorted_handles, sorted_labels, loc='center right', bbox_to_anchor=(1.3, 0.5))
     
     plt.tight_layout()
     plt.savefig(output_file, dpi=300, bbox_inches='tight')
@@ -68,7 +101,7 @@ def main(input_file, output_file):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Generate stacked bar charts from contig data")
-    parser.add_argument("input_file", help="Path to the input TSV file")
+    parser.add_argument("input_file", help="Path to the input CSV file")
     parser.add_argument("output_file", help="Path to save the output chart")
     args = parser.parse_args()
     

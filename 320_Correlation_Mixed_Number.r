@@ -4,7 +4,7 @@ library(ggplot2)
 library(gridExtra)
 
 # Read the input file and filter out 'Phage' entries
-data <- read_csv("Results/04_DF_Correlation/correlation_original.csv") %>%
+data <- read_csv("Results/06_DF_Correlation/correlation_original.csv") %>%
   filter(Contig_Classification != "Phage")
 
 # Get the column names for correlation analysis (columns 10 to 76)
@@ -40,8 +40,13 @@ create_scatter_plot <- function(data, x_var, y_var, defense_type) {
   # Filter size_values to only include those present in the data
   size_values <- size_values[names(size_values) %in% unique_classifications]
 
+  # Define color mapping for fixed classifications
+  color_mapping <- c(HP = "#6566aa", RS = "#8fced1", MS = "#f07e40", BTP = "#dc5772")
+  
   ggplot(data, aes_string(x = x_var, y = y_var)) +
-    geom_point(aes(color = Location, shape = Country, alpha = factor(Season), size = Contig_Classification)) +
+    geom_point(aes(color = Location, shape = Country, 
+                   # alpha = factor(Season), 
+                   size = Contig_Classification)) +
     geom_smooth(method = "lm", se = TRUE, color = "#f07e40", aes(group = 1)) +
     labs(x = x_var, y = y_var) +
     theme_bw() +
@@ -53,13 +58,13 @@ create_scatter_plot <- function(data, x_var, y_var, defense_type) {
       legend.position = "right",
       legend.box = "vertical"
     ) +
-    scale_color_manual(values = c("#2e3472", "#be3558", "#459c7a", "#f07e40")) +
-    scale_alpha_manual(values = c(0.3, 0.6, 1)) +
+    scale_color_manual(values = color_mapping) +
+    # scale_alpha_manual(values = c(0.3, 0.6, 1)) +
     scale_size_manual(values = size_values) +
     guides(
       color = guide_legend(override.aes = list(size=3)),
       shape = guide_legend(override.aes = list(size=3)),
-      alpha = guide_legend(title = "Season", override.aes = list(size=3)),
+      # alpha = guide_legend(title = "Season", override.aes = list(size=3)),
       size = guide_legend(title = "Contig Classification", override.aes = list(size=unname(size_values)))
     ) +
     annotate("text", x = Inf, y = Inf, label = paste("r =", cor_value, "\n", p_value_text), 
@@ -106,7 +111,7 @@ for (defense_type in unique(data$Defense_Type)) {
     filename <- paste0("correlation_plots_", gsub(" ", "_", defense_type), ".pdf")
     
     # Save the plot grid as a PDF
-    pdf(file.path("Results/04_DF_Correlation/test6", filename), width = 30, height = 8 * n_rows)
+    pdf(file.path("Results/06_DF_Correlation/Number_right_color", filename), width = 30, height = 8 * n_rows)
     do.call(grid.arrange, c(plots, ncol = n_cols))
     dev.off()
     

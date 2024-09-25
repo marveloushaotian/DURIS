@@ -1,0 +1,291 @@
+---
+title: "visual_heatmap"
+author: "Haotian Zheng"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+rm(list = ls())
+knitr::opts_chunk$set(echo = TRUE)
+library(devtools)
+library(ComplexHeatmap)
+library(circlize)
+library(grid)
+library(tibble)
+```
+
+```{r}
+# Set fixed parameters
+input_dir <- "Collect/01_Defense/03_DF_TPM_Matrix/DefenseType/"  # Replace with your input directory path
+output_dir <- "Results/02_DF_Distribution/04_Heatmap/Distribution_DFType_Merged"  # Replace with your output directory path
+min_nonzero <- 0
+figure_width <- 20  # in inches
+figure_height <- 10  # in inches
+fontsize <- 8
+top_n_defenses <- 20  # New parameter for top N defenses
+
+# Read group information
+group_info <- read.csv("Collect/00_Metadata/Sample_Group.csv")  # Replace with actual path
+group_info$Location <- factor(group_info$Location, levels = c("HP", "RS", "MS", "BTP"))
+group_info$Country <- factor(group_info$Country, levels = c("DK", "SP", "UK"))
+group_info <- group_info[order(group_info$Location, group_info$Country), ]
+
+# Create custom color mapping
+create_custom_colormap <- function() {
+  colors <- c('#eaeeea', '#d6ecc1', '#b9df89', '#99ce76',
+              '#75b989', '#54a296', '#458689', '#3a6a77')
+  return(colorRamp2(c(0, 0.1, 0.5, 1, 2, 4, 6, 10), colors))
+}
+
+# Define colors for Location and Country
+location_colors <- c("HP" = "#c6a4c5", "RS" = "#a3cbd6", "MS" = "#d1b49a", "BTP" = "#ffc7c9")
+country_colors <- c("DK" = "#cd6073", "SP" = "#e1834e", "UK" = "#434d91")
+
+# Generate heatmap function
+generate_heatmap <- function(file_path, save_path, min_nonzero, figure_width, figure_height, fontsize, custom_cmap, group_info, top_n = NULL) {
+  data <- read.csv(file_path, row.names = 1)
+  filtered_data <- data[rowSums(data != 0) >= min_nonzero, ]
+  
+  # Log transform the data
+  log_data <- log10(filtered_data + 1)
+  
+  # Calculate mean abundance for each defense
+  mean_abundance <- rowMeans(log_data)
+  
+  # Sort defenses by mean abundance in descending order
+  sorted_defenses <- names(sort(mean_abundance, decreasing = TRUE))
+  
+  # If top_n is specified, select only the top N defenses
+  if (!is.null(top_n)) {
+    sorted_defenses <- sorted_defenses[1:min(top_n, length(sorted_defenses))]
+  }
+  
+  log_data <- log_data[sorted_defenses, ]
+  
+  # Transpose the data to have defenses as columns and samples as rows
+  log_data_t <- t(log_data)
+  
+  # Order rows based on group_info
+  log_data_t <- log_data_t[match(group_info$Sample, rownames(log_data_t)), ]
+  
+  # Create row annotation
+  row_anno <- rowAnnotation(
+    Location = group_info$Location,
+    Country = group_info$Country,
+    col = list(
+      Location = location_colors,
+      Country = country_colors
+    ),
+    show_annotation_name = TRUE,
+    annotation_name_gp = gpar(fontsize = fontsize),
+    annotation_legend_param = list(
+      title_gp = gpar(fontsize = fontsize),
+      labels_gp = gpar(fontsize = fontsize)
+    )
+  )
+  
+  # Create heatmap
+  ht <- Heatmap(as.matrix(log_data_t),
+                name = "Abundance(Log)",
+                col = custom_cmap,
+                show_row_names = TRUE,
+                show_column_names = TRUE,
+                cluster_rows = FALSE,  # Disable row clustering
+                cluster_columns = FALSE,  # Disable column clustering
+                show_column_dend = FALSE,  # Hide column dendrogram
+                row_names_gp = gpar(fontsize = fontsize),
+                column_names_gp = gpar(fontsize = fontsize),
+                left_annotation = row_anno,
+                row_title = NULL,
+                heatmap_legend_param = list(
+                  title_gp = gpar(fontsize = fontsize),
+                  labels_gp = gpar(fontsize = fontsize)
+                ),
+                row_split = group_info$Location,  # Split rows by Location
+                row_gap = unit(2, "mm"))  # Add gap between groups
+  
+  # Save heatmap
+  filename <- sub("\\.csv$", ifelse(is.null(top_n), "_heatmap.pdf", paste0("_top", top_n, "_heatmap.pdf")), basename(file_path))
+  pdf(file.path(save_path, filename), width = figure_width, height = figure_height)
+  draw(ht)
+  dev.off()
+}
+
+# Main function
+main <- function(use_top_n = FALSE) {
+  dir.create(output_dir, showWarnings = FALSE, recursive = TRUE)
+  custom_cmap <- create_custom_colormap()
+  
+  csv_files <- list.files(input_dir, pattern = "\\.csv$", full.names = TRUE)
+  
+  for (file_path in csv_files) {
+    if (use_top_n) {
+      generate_heatmap(file_path, output_dir, min_nonzero, figure_width, figure_height, fontsize, custom_cmap, group_info, top_n = top_n_defenses)
+    } else {
+      generate_heatmap(file_path, output_dir, min_nonzero, figure_width, figure_height, fontsize, custom_cmap, group_info)
+    }
+  }
+  
+  print("Heatmaps have been generated and successfully saved.")
+}
+
+# Run main function
+# Set use_top_n to TRUE to only plot top 20 defenses
+main(use_top_n = FALSE)
+```
+
+# Merged
+
+```{r}
+# Set fixed parameters
+input_dir <- "Collect/01_Defense/03_DF_TPM_Matrix/DefenseType/"  # Replace with your input directory path
+output_dir <- "Results/02_DF_Distribution/04_Heatmap/Distribution_DFType_Merged"  # Replace with your output directory path
+min_nonzero <- 0
+figure_width <- 20  # in inches
+figure_height <- 4  # in inches
+fontsize <- 8
+top_n_defenses <- 20  # New parameter for top N defenses
+
+# Read group information
+group_info <- read.csv("Collect/00_Metadata/Sample_Group.csv")  # Replace with actual path
+group_info$Location <- factor(group_info$Location, levels = c("HP", "RS", "MS", "BTP"))
+group_info$Country <- factor(group_info$Country, levels = c("DK", "SP", "UK"))
+group_info <- group_info[order(group_info$Location, group_info$Country), ]
+
+# Create custom color mapping
+create_custom_colormap <- function() {
+  colors <- c("#8fced1", "#8ac2cd", "#86b7c8", "#81abc4", "#7ca0c0", "#7894bb", "#7389b7", "#6e7db3", "#6a72ae", "#6566aa")
+  return(colorRamp2(c(0, 0.05, 0.1, 0.5, 1, 2, 4, 6, 8, 10), colors))
+}
+
+# Define colors for Location and Country
+location_colors <- c("HP" = "#6566aa", "RS" = "#8fced1", "MS" = "#f07e40", "BTP" = "#dc5772")
+country_colors <- c("DK" = "#c6a4c5", "SP" = "#d0cab7", "UK" = "#f7ded5")
+
+# Generate heatmap function
+generate_heatmap <- function(file_path, save_path, min_nonzero, figure_width, figure_height, fontsize, custom_cmap, group_info, top_n = NULL) {
+  # 读取数据
+  data <- read.csv(file_path, row.names = 1)
+  
+  # 调试输出
+  print("Data structure:")
+  print(str(data))
+  print("Group info structure:")
+  print(str(group_info))
+  
+  # 确保数据列为数值型
+  data <- data %>% mutate(across(everything(), ~as.numeric(as.character(.))))
+  
+  # 调试输出
+  print("Data structure after conversion:")
+  print(str(data))
+  
+  # Merge data based on Location and Country
+  merged_data <- data %>%
+    t() %>%
+    as.data.frame() %>%
+    rownames_to_column("Sample") %>%
+    left_join(group_info, by = "Sample")
+  
+  # 调试输出
+  print("Merged data structure:")
+  print(str(merged_data))
+  
+  # 检查是否有缺失的 Location 或 Country
+  print("Samples with missing Location or Country:")
+  print(merged_data %>% filter(is.na(Location) | is.na(Country)))
+  
+  merged_data <- merged_data %>%
+    group_by(Location, Country) %>%
+    summarise(across(-Sample, ~mean(as.numeric(.), na.rm = TRUE)), .groups = "drop") %>%
+    mutate(row_name = paste(Location, Country, sep = "_")) %>%
+    column_to_rownames("row_name")
+  
+  # 调试输出
+  print("Final merged data structure:")
+  print(str(merged_data))
+  
+  filtered_data <- merged_data[rowSums(merged_data != 0, na.rm = TRUE) >= min_nonzero, ]
+  
+  # Log transform the data
+  log_data <- log10(filtered_data + 1)
+  
+  # Calculate mean abundance for each defense
+  mean_abundance <- colMeans(log_data)
+  
+  # Sort defenses by mean abundance in descending order
+  sorted_defenses <- names(sort(mean_abundance, decreasing = TRUE))
+  
+  # If top_n is specified, select only the top N defenses
+  if (!is.null(top_n)) {
+    sorted_defenses <- sorted_defenses[1:min(top_n, length(sorted_defenses))]
+  }
+  
+  log_data <- log_data[, sorted_defenses]
+  
+  # Create row annotation
+  row_anno <- rowAnnotation(
+    Location = factor(sub("_.*", "", rownames(log_data)), levels = levels(group_info$Location)),
+    Country = factor(sub(".*_", "", rownames(log_data)), levels = levels(group_info$Country)),
+    col = list(
+      Location = location_colors,
+      Country = country_colors
+    ),
+    show_annotation_name = TRUE,
+    annotation_name_gp = gpar(fontsize = fontsize),
+    annotation_legend_param = list(
+      title_gp = gpar(fontsize = fontsize),
+      labels_gp = gpar(fontsize = fontsize)
+    )
+  )
+  
+  # Create heatmap
+  ht <- Heatmap(as.matrix(log_data),
+                name = "Abundance(Log)",
+                col = custom_cmap,
+                show_row_names = TRUE,
+                show_column_names = TRUE,
+                cluster_rows = FALSE,  # Disable row clustering
+                cluster_columns = FALSE,  # Disable column clustering
+                show_column_dend = FALSE,  # Hide column dendrogram
+                row_names_gp = gpar(fontsize = fontsize),
+                column_names_gp = gpar(fontsize = fontsize),
+                left_annotation = row_anno,
+                row_title = NULL,
+                heatmap_legend_param = list(
+                  title_gp = gpar(fontsize = fontsize),
+                  labels_gp = gpar(fontsize = fontsize)
+                ),
+                row_split = factor(sub("_.*", "", rownames(log_data)), levels = levels(group_info$Location)),  # Split rows by Location
+                row_gap = unit(2, "mm"))  # Add gap between groups
+  
+  # Save heatmap
+  filename <- sub("\\.csv$", ifelse(is.null(top_n), "_merged_heatmap.pdf", paste0("_top", top_n, "_merged_heatmap.pdf")), basename(file_path))
+  pdf(file.path(save_path, filename), width = figure_width, height = figure_height)
+  draw(ht)
+  dev.off()
+}
+
+# Main function
+main <- function(use_top_n = FALSE) {
+  dir.create(output_dir, showWarnings = FALSE, recursive = TRUE)
+  custom_cmap <- create_custom_colormap()
+  
+  csv_files <- list.files(input_dir, pattern = "\\.csv$", full.names = TRUE)
+  
+  for (file_path in csv_files) {
+    if (use_top_n) {
+      generate_heatmap(file_path, output_dir, min_nonzero, figure_width, figure_height, fontsize, custom_cmap, group_info, top_n = top_n_defenses)
+    } else {
+      generate_heatmap(file_path, output_dir, min_nonzero, figure_width, figure_height, fontsize, custom_cmap, group_info)
+    }
+  }
+  
+  print("Merged heatmaps have been generated and successfully saved.")
+}
+
+# Run main function
+# Set use_top_n to TRUE to only plot top 20 defenses
+main(use_top_n = FALSE)
+```

@@ -105,7 +105,7 @@ location_centroids <- plot_data %>%
   summarise(NMDS1 = mean(NMDS1), NMDS2 = mean(NMDS2))
 
 # Create the NMDS plot
-p <- ggplot(plot_data, aes(x = NMDS1, y = NMDS2, color = Location, shape = Country, alpha = Season)) +
+p <- ggplot(plot_data, aes(x = NMDS1, y = NMDS2, color = Location, shape = Country)) +
   geom_point(size = 3) +
   stat_ellipse(aes(group = Location), level = 0.95, type = "t", linetype = 2, size = 0.5) +
   geom_label_repel(data = location_centroids, 
@@ -120,9 +120,8 @@ p <- ggplot(plot_data, aes(x = NMDS1, y = NMDS2, color = Location, shape = Count
                    force = 2) +  # 增加排斥力
   theme_bw() +
   labs(x = "NMDS1", y = "NMDS2") +
-  scale_color_manual(values = c("#2e3472", "#be3558", "#459c7a", "#f07e40", "#2e3472", "#be3558", "#459c7a", "#f07e40")) +
+  scale_color_manual(values = c("#dc5772", "#6566aa", "#f07e40", "#8fced1", "#dc5772", "#6566aa", "#f07e40", "#8fced1")) +
   scale_shape_manual(values = c(16, 17, 18)) +
-  scale_alpha_manual(values = c("WINTER" = 0.5, "SUMMER" = 1)) +
   theme(
     legend.position = "right",
     axis.title = element_text(size = 16, face = "bold"),

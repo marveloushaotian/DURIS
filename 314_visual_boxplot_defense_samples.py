@@ -11,10 +11,10 @@ def create_boxplot(input_file, output_file, final_result_column, y_axis_label='D
     df['Group'] = df['Country'] + '_' + df['Location']
     
     # Step 3: Create the boxplot
-    fig, axes = plt.subplots(1, 3, figsize=(24, 10))
+    fig, axes = plt.subplots(1, 3, figsize=(24, 6))
     
     contig_classifications = sorted(df['Contig_Classification'].unique())
-    location_colors = ["#23496d", "#8b68ab", "#8eb19a", "#7396bf"]
+    location_colors = ["#dc5772", "#6566aa", "#f07e40", "#8fced1"]
     location_color_map = dict(zip(sorted(df['Location'].unique()), location_colors))
     
     for i, cc in enumerate(contig_classifications):

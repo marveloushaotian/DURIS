@@ -51,8 +51,14 @@ def compute_defense_statistics(input_file, output_file, filter_pathogens=False, 
     if filter_pathogens:
         df = df[df['Kaiju_Species'].isin(pathogenic_species)]
 
-    # 3. Group by 'Kaiju_Species' and 'Defense_Type', and calculate the count
-    grouped = df.groupby(['Kaiju_Species', 'Defense_Type']).size().reset_index(name='Count')
+    # 3. Group by 'Kaiju_Species' and 'Defense_Type', and calculate the count and Pathogen_Total_Length
+    grouped = df.groupby(['Kaiju_Species', 'Defense_Type']).agg({
+        'Contig_Length': ['sum', 'count']
+    }).reset_index()
+    grouped.columns = ['Kaiju_Species', 'Defense_Type', 'Pathogen_Total_Length', 'Count']
+
+    # Calculate GCGB_New
+    grouped['GCGB_New'] = grouped['Count'] / grouped['Pathogen_Total_Length']
 
     # 4. If reference_file is provided, match and merge additional columns
     if reference_file:
@@ -73,7 +79,7 @@ def compute_defense_statistics(input_file, output_file, filter_pathogens=False, 
                              on='Defense_Type', how='left')
         
         # Select only the required columns
-        grouped = merged_df[['Kaiju_Species', 'Defense_Type', 'Count', 'Total_Defense_Num', 'Total_Contig_Length', 'GCGB']]
+        grouped = merged_df[['Kaiju_Species', 'Defense_Type', 'Count', 'Total_Defense_Num', 'Total_Contig_Length', 'GCGB', 'Pathogen_Total_Length', 'GCGB_New']]
 
     # 5. Save the results to a new CSV file
     grouped.to_csv(output_file, index=False)

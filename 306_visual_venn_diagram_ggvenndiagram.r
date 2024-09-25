@@ -18,7 +18,7 @@ read_csv_files <- function(directory) {
 }
 
 # Read CSV files from the specified directory
-data <- read_csv_files("Results/02_DF_Distribution/03_Venn/Defense_Subtype/Location")
+data <- read_csv_files("Results/02_DF_Distribution/03_Venn/Defense_Subtype/Gene_Type")
 
 # Rename categories if they match Chromosome, Phage, Plasmid
 rename_categories <- function(names) {
@@ -43,7 +43,7 @@ venn_plot <- ggVennDiagram(
   edge_size = 0.5,
   set_size = 12
 ) +
-  scale_fill_gradient(low = "#e8e7e9", high = "#a673a3") + 
+  scale_fill_gradient(low = "#e8e7e9", high = "#6566aa") + 
   theme_void() +
   theme(plot.title = element_text(hjust = 0.5, size = 16, face = "bold"),
         legend.position = "none")
@@ -51,5 +51,5 @@ venn_plot <- ggVennDiagram(
 # Display the plot
 print(venn_plot)
 
-# Save the plot as a PNG file
-ggsave("Results/02_DF_Distribution/03_Venn/venn_subtype_location.png", venn_plot, width = 10, height = 8, dpi = 300)
+# Save the plot as a PDF file
+ggsave("Results/02_DF_Distribution/03_Venn/venn_subtype_genetype.pdf", venn_plot, width = 10, height = 8, device = "pdf")

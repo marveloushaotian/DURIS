@@ -36,8 +36,14 @@ def process_data(df, contig_class):
     return percentages
 
 def plot_stacked_bar(ax, data, title):
-    colors = ["#c0dbe6","#2b526f","#4a9ba7","#a3cbd6","#c0cfbd","#9bb88a","#7b9b64","#d0cab7","#c6a4c5","#9b7baa","#7a7aaf","#434d91","#5284a2","#82b4c8","#9d795d","#d1b49a","#fff08c","#e1834e","#cd6073","#ffc7c9","#969696","#d1d9e2"]
+    # colors = ["#c0dbe6","#2b526f","#4a9ba7","#a3cbd6","#c0cfbd","#9bb88a","#7b9b64","#d0cab7","#c6a4c5","#9b7baa","#7a7aaf","#434d91","#5284a2","#82b4c8","#9d795d","#d1b49a","#fff08c","#e1834e","#cd6073","#ffc7c9","#969696","#d1d9e2"]
     
+    colors = ["#6566aa","#c6a4c5","#c6f0ec","#8fced1","#53a4a6",
+              "#d0cab7","#c0dbe6","#509d95","#75b989","#92ca77",
+              "#d6ecc1","#e7ee9f","#f7ded5","#faaf7f","#f07e40",
+              "#dc5772","#ebc1d1","#f9e7e7","#decba1","#d4888b",
+              "#969696","#d1d9e2"]
+
     # Sort columns by total percentage (descending)
     sorted_cols = data.sum().sort_values(ascending=False).index.tolist()
     data_sorted = data[sorted_cols]

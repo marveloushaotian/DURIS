@@ -22,16 +22,16 @@ create_chord_diagram <- function(input_file, output_png, output_pdf) {
   dkb_matrix <- as.matrix(dkb)
   
   # Set colors
-  color_row = c("SoF" = "#c0dbe6", "Wad" = "#4a9ba7",
-                "PD6" = "#c0cfbd", "RM" = "#7b9b64",
-                "AbiE" = "#c6a4c5", "AbiD" = "#7a7aaf",
-                "Cas" = "#5284a2", "Zor" = "#9d795d",
-                "CBA" = "#e1834e", "Sep" = "#ffc7c9")
+  color_row = c("SoF" = "#d0cab7", "Wad" = "#6566aa",
+                "PD6" = "#c6a4c5", "RM" = "#c6f0ec",
+                "AbiE" = "#8fced1", "AbiD" = "#4d9793",
+                "Cas" = "#f7ded5", "Zor" = "#f07e40",
+                "CBA" = "#dc5772", "Sep" = "#beccc5")
   color_col = c("Ps" = "#BF7EA2", "Ba" = "#BF7EA2",
                 "Bc" = "#BF7EA2", "Ca" = "#BF7EA2",
                 "Ac" = "#BF7EA2", "My" = "#BF7EA2",
                 "Ve" = "#BF7EA2", "Th" = "#BF7EA2",
-                "Ph" = "#0F7BA6", "Pm" = "#BFAB6F")
+                "Ph" = "#0B2E55", "Pm" = "#9cb3ad")
   state_col2 = c(color_row, color_col)
   names(state_col2) = c(rownames(dkb_matrix), colnames(dkb_matrix))
   
@@ -90,7 +90,7 @@ create_chord_diagram <- function(input_file, output_png, output_pdf) {
       xlim = get.cell.meta.data("xlim")
       ylim = get.cell.meta.data("ylim")
       circos.text(mean(xlim), ylim[1] + 0.2, sector.index, # Move labels further out
-                  facing = "clockwise", niceFacing = TRUE, adj = c(0, 0.5), cex = 1.5, font = 2)
+                  facing = "clockwise", niceFacing = TRUE, adj = c(0, 0.5), cex = 2.5, font = 2)
   }, bg.border = NA)
   dev.off()
 }
@@ -119,7 +119,7 @@ process_directory <- function(input_dir, output_dir) {
 
 # Set input and output directories
 input_dir <- "Collect/08_Circular/Final_GCGB_top10"
-output_dir <- "Results/08_Circular/GCGB_top10"
+output_dir <- "Results/08_Circular/GCGB_top10_new"
 
 # Process all files in the input directory
 process_directory(input_dir, output_dir)

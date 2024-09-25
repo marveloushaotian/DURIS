@@ -37,8 +37,8 @@ def create_alpha_diversity_boxplot(abundance_file, group_file, output_file, titl
     merged_df = pd.merge(shannon_diversity, group_df, left_index=True, right_on='Sample')
 
     # Step 4: Plot the boxplot for each Location group
-    plt.figure(figsize=(7, 8))  # Increased figure size for better visibility
-    ax = sns.boxplot(x='Location', y='Shannon_Diversity', data=merged_df, palette=["#a3cbd6", "#9bb88a", "#c6a4c5", "#d0cab7"])
+    plt.figure(figsize=(3, 8))  # Increased figure size for better visibility
+    ax = sns.boxplot(x='Location', y='Shannon_Diversity', data=merged_df, palette=["#6566aa", "#8fced1", "#f07e40", "#dc5772"])
     sns.stripplot(x='Location', y='Shannon_Diversity', data=merged_df, color='black', size=3, jitter=True, alpha=0.5)
 
     # Adjust y-axis limits to leave space for annotations within the plot

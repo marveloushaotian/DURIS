@@ -16,9 +16,10 @@ def create_stacked_bar_chart(input_file, output_file, value_column):
     filtered_df = df[df['Defense_Type'].isin(top_defense_types)]
 
     # Step 4: Define custom colors
-    custom_colors = ["#c0dbe6","#2b526f","#4a9ba7","#a3cbd6","#c0cfbd","#9bb88a","#7b9b64","#d0cab7","#c6a4c5","#9b7baa",
-                     "#7a7aaf","#434d91","#5284a2","#82b4c8","#9d795d","#d1b49a","#fff08c","#e1834e","#cd6073","#ffc7c9",
-                     "#969696","#d1d9e2"]
+    # custom_colors = ["#c0dbe6","#2b526f","#4a9ba7","#a3cbd6","#c0cfbd","#9bb88a","#7b9b64","#d0cab7","#c6a4c5","#9b7baa",
+    #                  "#7a7aaf","#434d91","#5284a2","#82b4c8","#9d795d","#d1b49a","#fff08c","#e1834e","#cd6073","#ffc7c9",
+    #                  "#969696","#d1d9e2"]
+    custom_colors = ["#434d91","#6566aa","#9b7baa","#c6a4c5","#c6f0ec","#8fced1","#53a4a6","#d0cab7","#c0dbe6","#509d95","#75b989","#92ca77","#d6ecc1","#e7ee9f","#f7ded5","#faaf7f","#f07e40","#dc5772","#ebc1d1","#f9e7e7","#969696","#d1d9e2"] 
     color_dict = dict(zip(top_defense_types, custom_colors[:len(top_defense_types)]))
 
     # Step 5: Create subplots for each Contig_Classification and Country

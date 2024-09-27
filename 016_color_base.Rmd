@@ -42,6 +42,8 @@ colors <- c("#c0dbe6","#2b526f","#4a9ba7","#a3cbd6","#c0cfbd","#9bb88a","#7b9b64
 
 ## main colors
 
+color_htmap <- c("#8fced1", "#8ac2cd", "#86b7c8", "#81abc4", "#7ca0c0", "#7894bb", "#7389b7", "#6e7db3", "#6a72ae", "#6566aa")
+
 colors_new_four <- c("#6566aa", "#8fced1", "#f07e40", "#dc5772")
 
 colors_new_20 <- c("#434d91","#6566aa","#9b7baa","#c6a4c5","#c6f0ec","#8fced1","#53a4a6","#d0cab7","#c0dbe6","#509d95","#75b989","#92ca77","#d6ecc1","#e7ee9f","#f7ded5","#faaf7f","#f07e40","#dc5772","#ebc1d1","#f9e7e7","#969696","#d1d9e2")

@@ -9,7 +9,7 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 def split_defense_info(input_file, output_file):
     # Load the data
     logging.info(f'Loading data from {input_file}')
-    df = pd.read_csv(input_file, sep='\t')
+    df = pd.read_csv(input_file)
     
     # Expand rows based on comma-separated values in 'Defense_Type' and 'Defense_Subtype'
     logging.info('Splitting rows based on comma-separated values in Defense_Type and Defense_Subtype')
@@ -30,15 +30,14 @@ def split_defense_info(input_file, output_file):
     
     # Save the expanded DataFrame to a new file
     logging.info(f'Saving expanded data to {output_file}')
-    expanded_df.to_csv(output_file, sep='\t', index=False)
+    expanded_df.to_csv(output_file, index=False)
     logging.info('Done!')
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description='Split All_defense_info.txt by Defense_Type and Defense_Subtype columns.')
-    parser.add_argument('-i', '--input', required=True, help='Input file path (All_defense_info.txt)')
+    parser = argparse.ArgumentParser(description='Split All_defense_info.csv by Defense_Type and Defense_Subtype columns.')
+    parser.add_argument('-i', '--input', required=True, help='Input file path (All_defense_info.csv)')
     parser.add_argument('-o', '--output', required=True, help='Output file path')
 
     args = parser.parse_args()
 
     split_defense_info(args.input, args.output)
-

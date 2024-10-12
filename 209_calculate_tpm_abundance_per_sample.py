@@ -34,7 +34,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Process coverage and profile files.")
     parser.add_argument("-i", "--input", required=True, help="Input folder containing coverage and profile files.")
     parser.add_argument("-o", "--output", required=True, help="Output folder for processed files.")
-    parser.add_argument("-t", "--threshold", type=float, default=0.0, help="Threshold value for coverage (default: 0.0).")
+    parser.add_argument("-t", "--threshold", type=float, default=0.55, help="Threshold value for coverage (default: 0.0).")
     args = parser.parse_args()
 
     process_files(args.input, args.output, args.threshold)

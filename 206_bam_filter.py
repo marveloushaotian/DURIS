@@ -8,10 +8,10 @@ def filter_bam_files(input_dir, output_dir):
     output_dir = Path(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    sorted_bam_files = list(input_dir.glob('*_sort.bam'))
+    sorted_bam_files = list(input_dir.glob('*.bam'))
     for bam_file in tqdm(sorted_bam_files, desc='Filtering BAM files'):
         output_file = output_dir / (bam_file.stem + '_filter.bam')
-        cmd = ['msamtools', 'filter', '-b', '-l', '80', '-p', '90', '-z', '80', '--besthit', str(bam_file), '>', str(output_file)]
+        cmd = ['msamtools', 'filter', '-b', '-l', '0', '-p', '0', '-z', '0', '--besthit', str(bam_file), '>', str(output_file)]
         cmd_string = " ".join(cmd)
         subprocess.run(cmd_string, shell=True, check=True)
         print(f'Filtered {bam_file} to {output_file}')

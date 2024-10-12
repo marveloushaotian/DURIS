@@ -8,9 +8,9 @@ def profile_bam_files(input_dir, output_dir):
     output_dir = Path(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    filter_bam_files = list(input_dir.glob('*_sort_filter.bam'))
+    filter_bam_files = list(input_dir.glob('*_filter.bam'))
     for bam_file in tqdm(filter_bam_files, desc='Generating profiles from BAM files'):
-        output_file = output_dir / (bam_file.stem + '_profile_rb.txt')
+        output_file = output_dir / (bam_file.stem + '_profile_rb.txt.gz')
         cmd = ['msamtools', 'profile', '--multi=all', '--unit=tpm', '--label=' + bam_file.name, '-o', str(output_file), str(bam_file)]
         subprocess.run(cmd, check=True)
         print(f'Generated profile for {bam_file} into {output_file}')

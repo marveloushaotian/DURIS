@@ -6,7 +6,7 @@ def rename_headers(input_file, output_file):
     try:
         df = pd.read_csv(input_file)
 
-        new_headers = ['Defense_Name'] + [f'Sample_{str(i).zfill(2)}' for i in range(1, len(df.columns))]
+        new_headers = ['Contig_ID'] + [f'Sample_{str(i).zfill(2)}' for i in range(1, len(df.columns))]
         df.columns = new_headers
 
         df.to_csv(output_file, index=False)

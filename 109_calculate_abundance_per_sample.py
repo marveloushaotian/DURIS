@@ -5,7 +5,7 @@ import argparse
 def process_files(input_folder, output_folder, threshold):
     for file_name in os.listdir(input_folder):
         if file_name.endswith("_coverage_info.txt.gz"):
-            sample_name = file_name[:-21]  # 去掉后缀 "_coverage_info.txt.gz"
+            sample_name = file_name[:-21]
             coverage_file = os.path.join(input_folder, file_name)
             profile_file = os.path.join(input_folder, sample_name + "_profile_rb.txt")
             output_file = os.path.join(output_folder, sample_name + "_existing_contigs_ab_per_sample.txt")

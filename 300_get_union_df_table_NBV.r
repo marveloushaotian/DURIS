@@ -1,31 +1,17 @@
----
-title: "00.data prepare"
-author: "Haotian Zheng"
-date: "`r Sys.Date()`"
-output: html_document
----
+# Load required libraries
+library(dplyr)
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-rm(list=ls())
-do.write <- F
-load("Collect/Color.RData")
-```
-
-
-# Rename defense systems name into standard names.
-
-```{r}
-# metadata_path <- "Collect/MetaData/Metadata.xlsx"
+# Define file paths
 defense_path <- "Collect/overview/non_redundant_padloc.csv"
 
-# metadata_df <- read_excel(metadata_path)
+# Read defense data
 defense_df <- read.csv(defense_path)
 
+# Replace hyphens with underscores in Sample column
 defense_df$Sample <- gsub("-", "_", defense_df$Sample)
 
-# Step 2: Rename columns
-UniName <- read.delim("Collect/Defense_Name_Standard/Defense_system_name_list.txt", header = TRUE, check.names = FALSE)
+# Read and process UniName data
+UniName <- read.csv("Collect/01_Defense/00_DF_Name_List/Unique_defense_name.csv", header = TRUE, check.names = FALSE)
 UniName_PADLOC <- UniName[,c("Unified Name","Unified Subtype Name","PADLOC Subtype Name")]
 colnames(UniName_PADLOC) <- c("Unified_Name", "Unified_Subtype_Name", "SubType")
 
@@ -34,8 +20,8 @@ UniName_PADLOC <- UniName_PADLOC %>% filter(!is.na(SubType) & SubType != "")
 
 # Merge defense_df with UniName_PADLOC on 'system' and 'SubType'
 defense_df <- left_join(defense_df, UniName_PADLOC, by = c("system" = "SubType"))
+
+# Write output if do.write is TRUE
 if(do.write){
   write.csv(defense_df, "Collect/overview/non_redundant_padloc_union_defense_name.csv", row.names = FALSE)
 }
-```
-

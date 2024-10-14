@@ -6,14 +6,16 @@ from tqdm import tqdm
 
 def process_file(file_path, output_path):
     """
-    Process a single CSV file, removing rows where the first column starts with 'PDC-' or equals 'DMS_other'.
+    Process a single CSV file, removing rows where the first column starts with 'PDC-' or 'HEC-', or equals 'DMS_other'.
     Save the modified DataFrame to the specified output file.
     """
     df = pd.read_csv(file_path)
     original_size = len(df)
     
-    # Remove rows where the first column starts with 'PDC-' or equals 'DMS_other'
-    df = df[~(df.iloc[:, 0].str.startswith('PDC-') | (df.iloc[:, 0] == 'DMS_other'))]
+    # Remove rows where the first column starts with 'PDC-' or 'HEC-', or equals 'DMS_other'
+    df = df[~(df.iloc[:, 0].str.startswith('PDC-') | 
+              df.iloc[:, 0].str.startswith('HEC-') | 
+              (df.iloc[:, 0] == 'DMS_other'))]
     
     # Save the modified DataFrame to the output file
     df.to_csv(output_path, index=False)
@@ -22,7 +24,7 @@ def process_file(file_path, output_path):
 
 def process_directory(directory, output_directory):
     """
-    Process all CSV files in a directory, removing rows where the first column starts with 'PDC-' or equals 'DMS_other'.
+    Process all CSV files in a directory, removing rows where the first column starts with 'PDC-' or 'HEC-', or equals 'DMS_other'.
     Save the modified DataFrames to the specified output directory.
     """
     total_rows_removed = 0
@@ -36,7 +38,7 @@ def process_directory(directory, output_directory):
     return total_rows_removed
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description='Remove rows from CSV files where the first column starts with "PDC-" or equals "DMS_other".')
+    parser = argparse.ArgumentParser(description='Remove rows from CSV files where the first column starts with "PDC-" or "HEC-", or equals "DMS_other".')
     parser.add_argument('-i', '--input', required=True, help='Input file or directory path')
     parser.add_argument('-o', '--output', required=True, help='Output file or directory path')
     args = parser.parse_args()

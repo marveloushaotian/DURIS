@@ -27,7 +27,7 @@ def process_bam_files(input_dir, output_dir, threads):
     failed = 0
     
     for bam_file in tqdm(bam_files, desc='Processing BAM files'):
-        output_file = output_dir / bam_file.name
+        output_file = output_dir / (bam_file.stem + '_sort.bam')
         if sort_and_index_bam_file(bam_file, output_file, threads):
             successful += 1
         else:

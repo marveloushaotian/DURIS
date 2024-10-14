@@ -55,11 +55,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-# Usage example:
-# python script_name.py -i /path/to/input/directory -o /path/to/output/directory -m /path/to/mapping_file.csv -s SubtypeColumn -t TypeColumn
-#
-# This script processes all CSV files in the input directory, replacing row names based on the mapping file,
-# merging rows with the same name by summing their values, removing rows starting with HEC_, PDC_, and DMS_other,
-# removing rows where all values are zero, and saving the results in the output directory.
-# You can specify custom column names for subtypes and types in the mapping file using -s and -t options.

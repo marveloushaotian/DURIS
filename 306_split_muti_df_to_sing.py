@@ -11,12 +11,12 @@ def split_defense_info(input_file, output_file):
     logging.info(f'Loading data from {input_file}')
     df = pd.read_csv(input_file)
     
-    # Expand rows based on comma-separated values in 'Defense_Type' and 'Defense_Subtype'
-    logging.info('Splitting rows based on comma-separated values in Defense_Type and Defense_Subtype')
+    # Expand rows based on semicolon-separated values in 'Defense_Type' and 'Defense_Subtype'
+    logging.info('Splitting rows based on semicolon-separated values in Defense_Type and Defense_Subtype')
     expanded_rows = []
     for index, row in tqdm(df.iterrows(), total=df.shape[0]):
-        defense_types = row['Defense_Type'].split(',')
-        defense_subtypes = row['Defense_Subtype'].split(',')
+        defense_types = row['Defense_Type'].split(';')
+        defense_subtypes = row['Defense_Subtype'].split(';')
         if len(defense_types) != len(defense_subtypes):
             raise ValueError(f'Mismatched lengths for Defense_Type and Defense_Subtype in row {index}')
         for dt, dst in zip(defense_types, defense_subtypes):

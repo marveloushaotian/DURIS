@@ -42,18 +42,18 @@ heatmap <- ggplot(cross_tab_filtered, aes(x = MGEs_SubType, y = Defense_Type)) +
        color = 'MGE Type') +
   theme_minimal() +
   theme(
-    axis.text.x = element_text(angle = 45, hjust = 1, size = 12, face = "bold"),
-    axis.text.y = element_text(size = 12, face = "bold"),
-    legend.title = element_text(size = 14, face = "bold"),
-    legend.text = element_text(size = 12, face = "bold"),
-    legend.key.size = unit(1.5, "cm")  # Increase the size of legend keys
+    axis.text.x = element_text(angle = 45, hjust = 1, size = 14, face = "bold"),
+    axis.text.y = element_text(size = 14, face = "bold"),
+    legend.title = element_text(size = 16, face = "bold"),
+    legend.text = element_text(size = 14, face = "bold"),
+    legend.key.size = unit(1.8, "cm")  # Increase the size of legend keys
   ) +
-  guides(size = guide_legend(override.aes = list(size = 5)))  # Increase the size of points in the legend
+  guides(size = guide_legend(override.aes = list(size = 6)))  # Increase the size of points in the legend
 
 # 8. Save the heatmap as PDF
 output_file <- "heatmap_output.pdf"
 cat(sprintf("Saving heatmap to %s\n", output_file))
-ggsave(output_file, heatmap, width = 15, height = 10, device = "pdf")
+ggsave(output_file, heatmap, width = 15, height = 8, device = "pdf")
 
 cat("Heatmap generation completed.\n")
 

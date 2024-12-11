@@ -54,4 +54,8 @@ colors_new_20_taxa <- c("#6566aa","#c6a4c5","#c6f0ec","#8fced1","#53a4a6","#d0ca
 "#8fced1", "#8ac2cd", "#86b7c8", "#81abc4", "#7ca0c0", "#7894bb", "#7389b7", "#6e7db3", "#6a72ae", "#6566aa", "#5b4fa1", "#513798", "#47208f", "#3d0886", "#33007d"
 
 "#8fced1", "#86b7c8", "#7ca0c0", "#7389b7", "#6a72ae", "#5b4fa1", "#513798", "#47208f", "#3d0886", "#33007d"
+
+"#434d91"="RM", "#6566aa"="SoFic", "#9b7baa"="PD_T4_6", "#c6a4c5"="CRISPRCas", "#c6f0ec"="AbiE", "#8fced1"="Zorya", "#53a4a6"="Septu", "#d0cab7"="Wadjet", "#c0dbe6"="CBASS", "#509d95"="AbiD", "#75b989"="DRT", "#92ca77"="AbiL", "#d6ecc1"="Gabija", "#e7ee9f"="Mokosh", "#f7ded5"="dXTPase", "#faaf7f"="GAO_19", "#f07e40"="Paris", "#dc5772"="darTG", "#ebc1d1"="ietAS", "#f9e7e7"="RosmerTA", "#d1d9e2"="Others"
+
+"#434d91"="SoFic", "#6566aa"="PD_T4_6", "#9b7baa"="RM_II", "#c6a4c5"="AbiE", "#c6f0ec"="RM_IIG", "#8fced1"="CRISPRCas_Other", "#53a4a6"="RM_I", "#d0cab7"="Septu_I", "#c0dbe6"="Cas_Adaptation", "#509d95"="AbiD", "#75b989"="Wadjet_Other", "#92ca77"="Zorya_Other", "#d6ecc1"="AbiL", "#e7ee9f"="RM_IV", "#f7ded5"="Gabija", "#faaf7f"="RM_III", "#f07e40"="Cbass_I", "#dc5772"="dXTPase", "#ebc1d1"="DRT_II", "#f9e7e7"="GAO_19", "#d1d9e2"="Others"
 ```

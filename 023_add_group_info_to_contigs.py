@@ -47,8 +47,6 @@ if __name__ == '__main__':
     parser.add_argument('-o', '--output_file', type=str, required=True, help='Path to save the processed CSV file')
     parser.add_argument('--contig_id_column', type=str, default='Contig_ID', help='Name of the column containing Contig_ID')
     parser.add_argument('--sample_name_column', type=str, default='Sample', help='Name of the new column to create for sample names')
-    parser.add_argument('-h', '--help', action='help', default=argparse.SUPPRESS, 
-                        help='Show this help message and exit')
 
     args = parser.parse_args()
 

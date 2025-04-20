@@ -15,35 +15,14 @@ export -f doit
 
 echo "Starting defense annotation with Defense Finder for plasmids contigs..."
 
-echo "contig: metagenome_plasmid_circular_plaspline"
-parallel -j12 doit ::: Process/03.Defense/01.PADLOC/plasmid/metagenome_plasmid_circular_plaspline/*.faa ::: metagenome_plasmid_circular_plaspline ::: metagenome_plasmid_circular_plaspline
+echo "contig: chromosome"
+parallel -j12 doit ::: Source/02_contigs/03_chromosome/fastas/chromosome.fasta ::: chromosome ::: chromosome
 
-echo "contig: metagenome_plasmid_linear_genomad"
-parallel -j12 doit ::: Process/03.Defense/01.PADLOC/plasmid/metagenome_plasmid_linear_genomad/*.faa ::: metagenome_plasmid_linear_genomad ::: metagenome_plasmid_linear_genomad
+echo "contig: plasmid"
+parallel -j12 doit ::: Source/02_contigs/02_plasmid/fastas/plasmid.fasta ::: plasmid ::: plasmid
 
-echo "contig: metagenome_plasmid_linear_plaspline"
-parallel -j12 doit ::: Process/03.Defense/01.PADLOC/plasmid/metagenome_plasmid_linear_plaspline/*.faa ::: metagenome_plasmid_linear_plaspline ::: metagenome_plasmid_linear_plaspline
-
-echo "contig: plasmidome_plasmid_circular_plaspline"
-parallel -j12 doit ::: Process/03.Defense/01.PADLOC/plasmid/plasmidome_plasmid_circular_plaspline/*.faa ::: plasmidome_plasmid_circular_plaspline ::: plasmidome_plasmid_circular_plaspline
-
-echo "contig: plasmidome_plasmid_linear_genomad"
-parallel -j12 doit ::: Process/03.Defense/01.PADLOC/plasmid/plasmidome_plasmid_linear_genomad/*.faa ::: plasmidome_plasmid_linear_genomad ::: plasmidome_plasmid_linear_genomad
-
-echo "contig: plasmidome_plasmid_linear_plaspline"
-parallel -j12 doit ::: Process/03.Defense/01.PADLOC/plasmid/plasmidome_plasmid_linear_plaspline/*.faa ::: plasmidome_plasmid_linear_plaspline ::: plasmidome_plasmid_linear_plaspline
-
-echo "contig: Metagenome Phage"
-parallel -j12 doit ::: Process/03.Defense/01.PADLOC/phage/metagenome_phage/*.faa ::: Metagenome_Phage ::: Metagenome_Phage
-
-echo "contig: Plasmidome Phage"
-parallel -j12 doit ::: Process/03.Defense/01.PADLOC/phage/plasmidome_phage/*.faa ::: Plasmidome_Phage ::: Plasmidome_Phage
-
-echo "contig: Metagenome Chromosome"
-parallel -j12 doit ::: Process/03.Defense/01.PADLOC/chromosome/metagenome_chromosome/*.faa ::: Metagenome_Chromosome ::: Metagenome_Chromosome
-
-echo "contig: Plasmidome Chromosome, but actually is plasmid"
-parallel -j12 doit ::: Process/03.Defense/01.PADLOC/chromosome/plasmidome_chromosome/*.faa ::: Plasmidome_Chromosome ::: Plasmidome_Chromosome
+echo "contig: phage"
+parallel -j12 doit ::: Source/02_contigs/04_phage/fastas/phage.fasta ::: phage ::: phage
 
 echo "All defense systems annotation are complete."
 
